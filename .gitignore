@@ -39,5 +39,3 @@ next-env.d.ts
 
 # yarn
 .yarn
-yarn*
-.yarnrc.yml
