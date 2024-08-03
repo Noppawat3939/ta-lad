@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, InputProps } from "@nextui-org/react";
+import { Input, type InputProps } from "@nextui-org/react";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ export default function InputPassword(props: InputPasswordProps) {
   return (
     <Input
       {...props}
-      type={isVisable ? "password" : "text"}
+      type={!isVisable ? "password" : "text"}
       endContent={
         <button
           onClick={() => setIsVisable(!isVisable)}
