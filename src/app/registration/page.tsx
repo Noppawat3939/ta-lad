@@ -1,0 +1,83 @@
+import { MainLayout } from "@/components";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  Image,
+  Link,
+} from "@nextui-org/react";
+import { ReactNode } from "react";
+
+interface IRegisterCard {
+  role: string;
+  image: string;
+  label: ReactNode;
+}
+
+export default function RegistationPage() {
+  const registerOptions: IRegisterCard[] = [
+    {
+      role: "seller-user",
+      image: "/images/seller.png",
+      label: (
+        <p>
+          {"ฉันกำลังมองหา"}
+          <span className="text-[#FF731D] font-medium">{"ตลาด"}</span>
+          {"ที่ดีสำหรับธุรกิจของฉัน"}
+        </p>
+      ),
+    },
+    {
+      role: "end-user",
+      image: "/images/user.png",
+      label: (
+        <p>
+          {"ฉันกำลังมองหา"}
+          <span className="text-[#FF731D] font-medium">{"สินค้า"}</span>
+          {"ที่ดีมีคุณภาพสำหรับฉัน"}
+        </p>
+      ),
+    },
+  ];
+
+  return (
+    <MainLayout className="flex flex-col gap-4 px-4 items-center justify-center">
+      <header>
+        <h2 className="text-2xl font-semibold">
+          {"สวัสดี คุณกำลังมองหาอะไรอยู่เหรอ ?"}
+        </h2>
+      </header>
+      <section className="flex justify-center gap-5 w-full max-w-[900px] max-md:flex-col">
+        {registerOptions.map((option) => (
+          <RegisCard key={option.role} {...option} />
+        ))}
+      </section>
+    </MainLayout>
+  );
+}
+
+function RegisCard({ image, label, role }: IRegisterCard) {
+  return (
+    <Card className="w-full pb-2">
+      <CardBody>
+        <Image
+          src={image}
+          loading="lazy"
+          height={300}
+          className="object-contain"
+        />
+        <div className="flex justify-center">{label}</div>
+      </CardBody>
+      <CardFooter className="justify-center">
+        <Button
+          as={Link}
+          href={`/registration/${role}`}
+          color={role === "seller-user" ? "secondary" : "primary"}
+        >
+          {"ไปกันเลย !"}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

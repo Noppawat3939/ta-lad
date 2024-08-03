@@ -24,10 +24,14 @@ const config: Config = {
         light: {
           colors: {
             primary: {
-              DEFAULT: "#FF6E31",
+              DEFAULT: "#FF731D",
               foreground: "#FFFFFF",
             },
             focus: "#FF6E31",
+            secondary: {
+              DEFAULT: "#000000",
+              foreground: "#FFFFFF",
+            },
           },
         },
       },

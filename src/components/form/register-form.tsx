@@ -5,26 +5,34 @@ import {
   Card,
   CardBody,
   CardFooter,
+  CardHeader,
+  CardProps,
   Input,
+  Link,
   cn,
 } from "@nextui-org/react";
 import { InputPassword } from ".";
 import { ChevronRight, Circle, CircleCheckBig } from "lucide-react";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 const PASSWORD_CON_LABEL = {
-  number: "At least one digit (0-9)",
-  lowercase: "A lower-case letter",
-  uppercase: "A upper-case letter",
-  length: "At least 8 characters",
+  number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
+  lowercase: "ตัวพิมพ์เล็ก (a-z) อย่างน้อย 1 ตัว",
+  uppercase: "ตัวพิมพ์ใหญ่ (A-Z) อย่างน้อย 1 ตัว",
+  length: "ความยาวอย่างน้อย 8 ตัวอักษร",
 };
 
-export default function RegisterForm() {
+type RegisterFormProps = {
+  cardProps?: CardProps;
+};
+
+export default function RegisterForm({ cardProps }: RegisterFormProps) {
   const [registerValues, setRegisterValues] = useState({
     email: "",
     password: "",
+    phoneNumber: "",
   });
-
+  const [step, setStep] = useState(1);
   const [passwordIsValid, setPasswordIsValid] = useState({
     number: false,
     lowercase: false,
@@ -57,56 +65,100 @@ export default function RegisterForm() {
     []
   );
 
+  const handleIncreaseStep = () => {
+    setStep((prev) => prev + 1);
+  };
+
+  const renderFirstStep = () => {
+    return (
+      <Fragment>
+        <Input
+          value={registerValues.email}
+          onChange={(e) => onChangeValue("email", e.target.value)}
+          label="อีเมลล์"
+          autoComplete="off"
+        />
+        <InputPassword
+          label="รหัสผ่าน"
+          autoComplete="off"
+          value={registerValues.password}
+          onChange={(e) => onChangeValue("password", e.target.value)}
+        />
+        <Input
+          value={registerValues.phoneNumber}
+          onChange={(e) => onChangeValue("phoneNumber", e.target.value)}
+          label="เบอร์โทรศัพท์"
+          autoComplete="off"
+        />
+        <h3 className="font-medium text-sm">{"รหัสผ่านต้องประกอบไปด้วย"}</h3>
+        <ul className="gap-2 flex flex-col">
+          {Object.keys(PASSWORD_CON_LABEL).map((key, i) => {
+            const containLabel =
+              PASSWORD_CON_LABEL[key as keyof typeof PASSWORD_CON_LABEL];
+
+            return (
+              <li
+                key={`contain-${i}`}
+                className={cn(
+                  "text-xs flex items-center gap-1",
+                  passwordIsValid[key as keyof typeof passwordIsValid]
+                    ? "text-teal-500"
+                    : "text-gray-300"
+                )}
+              >
+                {passwordIsValid[key as keyof typeof passwordIsValid] ? (
+                  <CircleCheckBig className="w-4 h-4" />
+                ) : (
+                  <Circle className="w-4 h-4" />
+                )}
+                {containLabel}
+              </li>
+            );
+          })}
+        </ul>
+      </Fragment>
+    );
+  };
+
+  const renderSecondStep = () => {
+    return (
+      <Fragment>
+        <Input label="เลขบัตรประชาชน" />
+      </Fragment>
+    );
+  };
+
   return (
-    <Card>
+    <Card {...cardProps} className="py-[24px] px-2">
+      <CardHeader>
+        <h2 className="text-xl font-semibold w-full text-center">
+          {"สมัครสมาชิกสำหรับผู้ใช้งานใหม่"}
+        </h2>
+      </CardHeader>
       <CardBody>
         <div className="flex flex-col gap-4">
-          RegisterForm
-          <Input
-            value={registerValues.email}
-            onChange={(e) => onChangeValue("email", e.target.value)}
-            label="Email"
-            placeholder="user@talad.com"
-          />
-          <InputPassword
-            label="Password"
-            placeholder="password"
-            value={registerValues.password}
-            onChange={(e) => onChangeValue("password", e.target.value)}
-          />
-          <h3 className="font-medium text-sm">Password must contain</h3>
-          <ul className="gap-2 flex flex-col">
-            {Object.keys(PASSWORD_CON_LABEL).map((key, i) => {
-              const containLabel =
-                PASSWORD_CON_LABEL[key as keyof typeof PASSWORD_CON_LABEL];
-
-              return (
-                <li
-                  key={`contain-${i}`}
-                  className={cn(
-                    "text-xs flex items-center gap-1",
-                    passwordIsValid[key as keyof typeof passwordIsValid]
-                      ? "text-teal-500"
-                      : "text-gray-300"
-                  )}
-                >
-                  {passwordIsValid[key as keyof typeof passwordIsValid] ? (
-                    <CircleCheckBig className="w-4 h-4" />
-                  ) : (
-                    <Circle className="w-4 h-4" />
-                  )}
-                  {containLabel}
-                </li>
-              );
-            })}
-          </ul>
+          {step === 1 && renderFirstStep()}
+          {step === 2 && renderSecondStep()}
         </div>
       </CardBody>
-      <CardFooter>
-        <Button color="primary">
-          Continue
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+      <CardFooter className="mt-3">
+        <div className="flex flex-col w-full gap-3">
+          <Button
+            color={"primary"}
+            className="w-full"
+            type="button"
+            onClick={handleIncreaseStep}
+          >
+            {"ต่อไป"}
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+          <div className="flex space-x-2 justify-center items-baseline">
+            <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
+            <Link color="primary" className="cursor-pointer text-sm">
+              {"ล็อคอิน"}
+            </Link>
+          </div>
+        </div>
       </CardFooter>
     </Card>
   );

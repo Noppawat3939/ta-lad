@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Kanit } from "next/font/google";
 import { AppProvider } from "@/provider";
+import { cn } from "@nextui-org/theme";
+
 import "./globals.css";
 
 const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "600", "800"],
+});
+const kanit = Kanit({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "600", "800"],
 });
@@ -20,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className="light">
-      <body className={poppins.className}>
+      <body className={cn(poppins.className, kanit.className)}>
         <AppProvider>{children}</AppProvider>
       </body>
     </html>
