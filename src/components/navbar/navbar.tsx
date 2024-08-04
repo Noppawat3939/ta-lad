@@ -15,7 +15,7 @@ export default function Navbar({ className }: NavbarProps) {
   return (
     <nav
       className={cn(
-        "sticky top-0 bg-white drop-shadow-sm h-[80px] flex items-center",
+        "sticky top-0 z-10 bg-white drop-shadow-sm h-[80px] flex items-center",
         className
       )}
     >
@@ -23,7 +23,7 @@ export default function Navbar({ className }: NavbarProps) {
         {showBackBtn && (
           <Link
             onClick={router.back}
-            className="absolute left-10 text-sm top-[50%] cursor-pointer translate-y-[-50%]"
+            className="absolute left-10 max-md:left-6 max-sm:left-3 text-sm top-[50%] cursor-pointer translate-y-[-50%]"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             {"ย้อนกลับ"}

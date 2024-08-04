@@ -414,7 +414,7 @@ export default function RegisterForm({
               {step >= 3 ? "ยืนยัน" : "ถัดไป"}
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <div className="flex space-x-2 justify-center items-baseline">
+            <div className="flex space-x-1 justify-center items-baseline">
               <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
               <Link
                 color="primary"

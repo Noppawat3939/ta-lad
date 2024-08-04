@@ -22,7 +22,7 @@ export default function MainLayout({
         className={cn(
           className,
           "bg-gradient-to-b from-white via-slate-50/60 to-slate-100/50",
-          hideNavbar ? "h-screen" : "h-[calc(100dvh_-_80px)]"
+          hideNavbar ? "min-h-screen" : "min-h-[calc(100dvh_-_80px)]"
         )}
       >
         {children}

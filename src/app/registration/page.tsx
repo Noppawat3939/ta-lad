@@ -49,12 +49,12 @@ export default function RegistationPage() {
 
   return (
     <MainLayout className="flex flex-col gap-4 px-4 items-center justify-center">
-      <header>
-        <h2 className="text-3xl font-semibold max-md:text-xl">
+      <header className="max-md:mt-1">
+        <h2 className="text-3xl font-semibold max-md:text-xl max-md:mt-[10%]">
           {"สวัสดี คุณกำลังมองหาอะไรอยู่เหรอ ?"}
         </h2>
       </header>
-      <section className="flex justify-center gap-5 w-full max-w-[900px] max-md:flex-col">
+      <section className="flex justify-center gap-5 w-full max-w-[900px] max-md:flex-col max-md:py-4">
         {registerOptions.map((option) => (
           <RegisCard key={option.role} {...option} />
         ))}
@@ -72,7 +72,7 @@ function RegisCard({ image, label, role }: IRegisterCard) {
             src={image}
             loading="lazy"
             height={320}
-            className="max-md:h-[240px] object-contain"
+            className="max-md:h-[240px] object-contain z-0"
           />
         </center>
         <div className="flex justify-center">{label}</div>
