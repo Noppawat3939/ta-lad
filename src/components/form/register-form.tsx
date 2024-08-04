@@ -7,18 +7,21 @@ import {
   CardFooter,
   CardHeader,
   CardProps,
+  Image,
   Input,
   Link,
   Textarea,
   cn,
 } from "@nextui-org/react";
-import { InputPassword, SelectOption } from ".";
+import { InputOtp, InputPassword, SelectOption } from ".";
 import { ChevronRight, Circle, CircleCheckBig } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { externalService } from "@/apis";
 import { IDistrict, IProvince, ISubDistrict } from "@/types";
-import { z } from "zod";
 import { useFormState, useFormStatus } from "react-dom";
+import { hasLowerCase, hasNumber, hasUpperCase, numberOnly } from "@/lib";
+import { registerAction } from "@/actions";
+import { AnimateHidden } from "..";
 
 const PASSWORD_CON_LABEL = {
   number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
@@ -27,21 +30,27 @@ const PASSWORD_CON_LABEL = {
   length: "ความยาวอย่างน้อย 8 ตัวอักษร",
 };
 
+const registerState = {
+  email: "",
+  password: "",
+  phone_number: "",
+  first_name: "",
+  last_name: "",
+  id_card: "",
+  address_card_id: "",
+  province: "",
+  district: "",
+  sub_district: "",
+  code: "",
+  verify_token: "",
+};
+
 type RegisterFormProps = {
   cardProps?: CardProps;
 };
 
 export default function RegisterForm({ cardProps }: RegisterFormProps) {
-  const [values, setValues] = useState({
-    email: "",
-    password: "",
-    phone_number: "",
-    id_card: "",
-    address_card_id: "",
-    province: "",
-    district: "",
-    sub_district: "",
-  });
+  const [values, setValues] = useState(registerState);
   const [step, setStep] = useState(1);
   const [passwordIsValid, setPasswordIsValid] = useState({
     number: false,
@@ -53,41 +62,21 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [subDistricts, setSubDistricts] = useState<ISubDistrict[]>([]);
 
-  const first_step_schema = z.object({
-    email: z.string().email({ message: "กรุณากรอกอีเมลล์" }),
-    password: z.string().min(1, { message: "กรุณากรอกรหัสผ่าน" }),
-    phone_number: z.string().min(1, { message: "กรุณากรอกเบอร์โทรศัพท์" }),
-  });
+  const [err, action] = useFormState(
+    () => registerAction(step, values, onSubmitStep),
+    {}
+  );
 
-  const second_step_schema = z.object({
-    id_card: z.string().min(1, { message: "กรุณากรอกเลขบัตรประชาชน" }),
-    address_card_id: z
-      .string()
-      .min(1, { message: "กรุณากรอกที่อยู่ตามบัตรประชาชน" }),
-    province: z.string(),
-  });
-
-  const [err, action] = useFormState(() => {
-    const res = (step === 1 ? first_step_schema : second_step_schema).safeParse(
-      Object.fromEntries(Object.entries(values))
-    );
-    if (!res.success) return res.error.formErrors.fieldErrors;
-
-    return onSubmitStep(res.data);
-  }, {});
   const { pending } = useFormStatus();
 
   const validatePasswordValid = useCallback((password: string) => {
-    const lowerCaseValid = /[a-z]/.test(password);
-    const upperCaseValid = /[A-Z]/.test(password);
-    const digitValid = /\d/.test(password);
     const lengthValid = password.trim().length >= 8;
 
     setPasswordIsValid({
-      number: digitValid,
       length: lengthValid,
-      lowercase: lowerCaseValid,
-      uppercase: upperCaseValid,
+      number: hasNumber(password),
+      lowercase: hasLowerCase(password),
+      uppercase: hasUpperCase(password),
     });
   }, []);
 
@@ -167,10 +156,12 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
     }));
   }, [values.district]);
 
-  const onSubmitStep = (data: Partial<typeof values>) => {
-    console.log(data, values);
+  const onSubmitStep = () => {
+    if (step === 3) {
+      console.log("call register >>>", values);
+    }
 
-    setStep((prev) => prev + 1);
+    setStep((prev) => (prev >= 3 ? 3 : prev + 1));
   };
 
   const error = err as null | Partial<Record<keyof typeof values, string[]>>;
@@ -213,9 +204,7 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
               onChange={({ target: { value } }) =>
                 onChangeValue(
                   field.name,
-                  field.name === "phone_number"
-                    ? value.replace(/[^0-9]/g, "")
-                    : value
+                  field.name === "phone_number" ? numberOnly(value) : value
                 )
               }
               name={field.name}
@@ -260,9 +249,35 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
     return (
       <Fragment>
         <Input
+          label="ชื่อจริง"
+          value={values.first_name}
+          onChange={({ target: { value } }) =>
+            onChangeValue("first_name", value)
+          }
+          name="first_name"
+          errorMessage={error?.first_name?.[0]}
+          isInvalid={Boolean(error?.first_name)}
+          variant="bordered"
+          autoComplete="off"
+        />
+        <Input
+          label="นามสกุล"
+          value={values.last_name}
+          onChange={({ target: { value } }) =>
+            onChangeValue("last_name", value)
+          }
+          name="last_name"
+          errorMessage={error?.last_name?.[0]}
+          isInvalid={Boolean(error?.last_name)}
+          variant="bordered"
+          autoComplete="off"
+        />
+        <Input
           label="เลขบัตรประชาชน"
           value={values.id_card}
-          onChange={({ target: { value } }) => onChangeValue("id_card", value)}
+          onChange={({ target: { value } }) =>
+            onChangeValue("id_card", numberOnly(value))
+          }
           name="id_card"
           errorMessage={error?.id_card?.[0]}
           isInvalid={Boolean(error?.id_card)}
@@ -288,7 +303,6 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
           options={proviceOptions}
           value={values.province}
           name="province"
-          isRequired
           isInvalid={Boolean(error?.province)}
           errorMessage={error?.province?.[0]}
         />
@@ -296,7 +310,7 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
           <SelectOption
             label="อำเภอ"
             variant="bordered"
-            isDisabled={!values.province}
+            isDisabled={!values.province && !Boolean(error?.district)}
             options={districtOptions}
             value={values.district}
             onChange={({ target: { value } }) =>
@@ -310,7 +324,7 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
             label="เขต/ตำบล"
             variant="bordered"
             value={values.sub_district}
-            isDisabled={!values.district}
+            isDisabled={!values.district && !Boolean(error?.sub_district)}
             options={subDistrictOptions}
             onChange={({ target: { value } }) =>
               onChangeValue("sub_district", value)
@@ -324,6 +338,48 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
     );
   };
 
+  const renderThirdStep = () => {
+    return (
+      <div className="flex flex-col items-center w-full gap-2">
+        <h2 className="text-xl">{"โปรดยืนยันรหัส"}</h2>
+        <div className="flex gap-1 max-sm:flex-col">
+          <p className="text-slate-700">{"ระบบได้ส่งรหัสยืนยันไปยัง"}</p>
+          <p className="text-[#FF731D] font-medium">{values.email}</p>
+        </div>
+        <InputOtp
+          value={values.code}
+          onChange={(code) => onChangeValue("code", code)}
+          inputProps={{ size: "lg" }}
+        />
+      </div>
+    );
+  };
+
+  if (step === 4)
+    return (
+      <Card {...cardProps} className="py-[24px] px-2 max-sm:mx-3">
+        <CardBody>
+          <h1 className="text-3xl font-medium max-md:text-2xl max-sm:text-xl">
+            {"สวัสดี ยินต้อนรับสมาชิกใหม่ของเรา"}
+          </h1>
+          <h3 className="text-lg ml-[20px] mt-2">{`คุณ ${values.first_name} ${values.last_name}`}</h3>
+          <AnimateHidden isCenter>
+            <Image
+              src="/images/completed.png"
+              className="h-[420px] max-sm:h-[360px]"
+              loading="lazy"
+            />
+          </AnimateHidden>
+        </CardBody>
+        <CardFooter className="justify-center space-x-2">
+          <p>{"เข้าสู่ระบบ"}</p>
+          <Button as={Link} href="/login?callback=end-user" color="primary">
+            {"ล็อคอิน"}
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+
   return (
     <Card {...cardProps} className="py-[24px] px-2">
       <form action={action}>
@@ -336,6 +392,7 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
           <div className="flex flex-col gap-4">
             {step === 1 && renderFirstStep()}
             {step === 2 && renderSecondStep()}
+            {step === 3 && renderThirdStep()}
           </div>
         </CardBody>
         <CardFooter className="mt-3">
@@ -346,12 +403,16 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
               className="w-full"
               type="submit"
             >
-              {"ถัดไป"}
+              {step >= 3 ? "ยืนยัน" : "ถัดไป"}
               <ChevronRight className="w-4 h-4" />
             </Button>
             <div className="flex space-x-2 justify-center items-baseline">
               <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
-              <Link color="primary" className="cursor-pointer text-sm">
+              <Link
+                color="primary"
+                href="/login"
+                className="cursor-pointer text-sm"
+              >
                 {"ล็อคอิน"}
               </Link>
             </div>

@@ -34,6 +34,19 @@ const config: Config = {
             },
           },
         },
+        dark: {
+          colors: {
+            primary: {
+              DEFAULT: "#FF731D",
+              foreground: "#FFFFFF",
+            },
+            focus: "#FF6E31",
+            secondary: {
+              DEFAULT: "#FFFFFF",
+              foreground: "#000000",
+            },
+          },
+        },
       },
     }),
   ],
