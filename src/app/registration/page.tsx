@@ -8,7 +8,12 @@ import {
   Link,
 } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
+import { Metadata } from "next";
 import { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "สมัครสมาชิกเพื่อเข้าสู่ระบบ",
+};
 
 interface IRegisterCard {
   role: string;

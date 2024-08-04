@@ -47,9 +47,13 @@ const registerState = {
 
 type RegisterFormProps = {
   cardProps?: CardProps;
+  withRole: "end-user" | "seller-user";
 };
 
-export default function RegisterForm({ cardProps }: RegisterFormProps) {
+export default function RegisterForm({
+  cardProps,
+  withRole,
+}: RegisterFormProps) {
   const [values, setValues] = useState(registerState);
   const [step, setStep] = useState(1);
   const [passwordIsValid, setPasswordIsValid] = useState({
@@ -373,7 +377,11 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
         </CardBody>
         <CardFooter className="justify-center space-x-2">
           <p>{"เข้าสู่ระบบ"}</p>
-          <Button as={Link} href="/login?callback=end-user" color="primary">
+          <Button
+            as={Link}
+            href={`/login?callback=${withRole}`}
+            color="primary"
+          >
             {"ล็อคอิน"}
           </Button>
         </CardFooter>
@@ -410,7 +418,7 @@ export default function RegisterForm({ cardProps }: RegisterFormProps) {
               <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
               <Link
                 color="primary"
-                href="/login"
+                href={`/login?callback=${withRole}`}
                 className="cursor-pointer text-sm"
               >
                 {"ล็อคอิน"}
