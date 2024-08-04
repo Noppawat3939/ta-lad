@@ -1,9 +1,15 @@
 import { z } from "zod";
 
 const firstSchema = z.object({
-  email: z.string().email({ message: "กรุณากรอกอีเมลล์" }),
+  email: z
+    .string()
+    .email({ message: "รูปแบบอีเมลล์ไม่ถูกต้อง" })
+    .min(1, { message: "กรุณากรอกอีเมลล์" }),
   password: z.string().min(1, { message: "กรุณากรอกรหัสผ่าน" }),
-  phone_number: z.string().min(1, { message: "กรุณากรอกเบอร์โทรศัพท์" }),
+  phone_number: z
+    .string()
+    .min(1, { message: "กรุณากรอกเบอร์โทรศัพท์" })
+    .length(10, { message: "เบอร์โทรศัพท์ไม่ถูกต้อง" }),
 });
 
 const secondSchema = z.object({

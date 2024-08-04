@@ -15,13 +15,21 @@ import {
 } from "@nextui-org/react";
 import { InputOtp, InputPassword, SelectOption } from ".";
 import { ChevronRight, Circle, CircleCheckBig } from "lucide-react";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { externalService } from "@/apis";
+import {
+  Fragment,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { authService, externalService } from "@/apis";
 import { IDistrict, IProvince, ISubDistrict } from "@/types";
 import { useFormState, useFormStatus } from "react-dom";
 import { hasLowerCase, hasNumber, hasUpperCase, numberOnly } from "@/lib";
 import { registerAction } from "@/actions";
 import { AnimateHidden } from "..";
+import { AxiosError } from "axios";
 
 const PASSWORD_CON_LABEL = {
   number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
@@ -65,6 +73,8 @@ export default function RegisterForm({
   const [provinces, setProvinces] = useState<IProvince[]>([]);
   const [districts, setDistricts] = useState<IDistrict[]>([]);
   const [subDistricts, setSubDistricts] = useState<ISubDistrict[]>([]);
+  const [errorValidateField, setErrorValidateField] =
+    useState<Record<string, ReactNode>>();
 
   const [err, action] = useFormState(
     () => registerAction(step, values, onSubmitStep),
@@ -161,6 +171,14 @@ export default function RegisterForm({
   }, [values.district]);
 
   const onSubmitStep = () => {
+    const hasInvalidField = [
+      errorValidateField?.email,
+      errorValidateField?.phone_number,
+      errorValidateField?.id_card,
+    ].some((val) => val);
+
+    if (hasInvalidField) return;
+
     if (step === 3) {
       console.log("call register >>>", values);
     }
@@ -169,6 +187,28 @@ export default function RegisterForm({
   };
 
   const error = err as null | Partial<Record<keyof typeof values, string[]>>;
+
+  const handleValidate = async (fieldValue: {
+    email?: string;
+    phone_number?: string;
+    id_card?: string;
+  }) => {
+    try {
+      const { data } = await authService.validateField(fieldValue);
+
+      if (!data?.available && data?.field) {
+        setErrorValidateField({ [data.field]: data.error_message });
+
+        return;
+      }
+
+      setErrorValidateField(undefined);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error(error.response?.data);
+      }
+    }
+  };
 
   const renderFirstStep = () => {
     const fields = [
@@ -212,9 +252,22 @@ export default function RegisterForm({
                 )
               }
               name={field.name}
-              isInvalid={Boolean(errField)}
+              isInvalid={
+                Boolean(errField) ||
+                !!errorValidateField?.[
+                  field.name as keyof typeof errorValidateField
+                ]
+              }
               variant="bordered"
-              errorMessage={errField?.[0]}
+              errorMessage={
+                errorValidateField?.[
+                  field.name as keyof typeof errorValidateField
+                ] || errField?.[0]
+              }
+              onBlur={() =>
+                values[field.name].trim() &&
+                handleValidate({ [field.name]: values[field.name] })
+              }
             />
           );
         })}
@@ -283,10 +336,15 @@ export default function RegisterForm({
             onChangeValue("id_card", numberOnly(value))
           }
           name="id_card"
-          errorMessage={error?.id_card?.[0]}
-          isInvalid={Boolean(error?.id_card)}
+          errorMessage={errorValidateField?.id_card || error?.id_card?.[0]}
+          isInvalid={
+            Boolean(error?.id_card) || !!errorValidateField?.["id_card"]
+          }
           variant="bordered"
           autoComplete="off"
+          onBlur={() =>
+            values.id_card.trim() && handleValidate({ id_card: values.id_card })
+          }
         />
         <Textarea
           label="ที่อยู่ตามบัตรประชาชน"
