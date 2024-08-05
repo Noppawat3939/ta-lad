@@ -17,19 +17,20 @@ import { InputOtp, InputPassword, SelectOption } from ".";
 import { ChevronRight, Circle, CircleCheckBig } from "lucide-react";
 import {
   Fragment,
-  ReactNode,
+  type ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
-import { authService, externalService } from "@/apis";
-import { IDistrict, IProvince, ISubDistrict } from "@/types";
+import { authService } from "@/apis";
+import { CreateUser } from "@/types";
 import { useFormState, useFormStatus } from "react-dom";
 import { hasLowerCase, hasNumber, hasUpperCase, numberOnly } from "@/lib";
 import { registerAction } from "@/actions";
 import { AnimateHidden } from "..";
 import { AxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
+import { useGetProvince } from "@/hooks";
 
 const PASSWORD_CON_LABEL = {
   number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
@@ -62,7 +63,7 @@ export default function RegisterForm({
   cardProps,
   withRole,
 }: RegisterFormProps) {
-  const [values, setValues] = useState(registerState);
+  const [values, setValues] = useState<CreateUser>(registerState);
   const [step, setStep] = useState(1);
   const [passwordIsValid, setPasswordIsValid] = useState({
     number: false,
@@ -70,11 +71,9 @@ export default function RegisterForm({
     uppercase: false,
     length: false,
   });
-  const [provinces, setProvinces] = useState<IProvince[]>([]);
-  const [districts, setDistricts] = useState<IDistrict[]>([]);
-  const [subDistricts, setSubDistricts] = useState<ISubDistrict[]>([]);
   const [errorValidateField, setErrorValidateField] =
     useState<Record<string, ReactNode>>();
+  const [emailSending, setEmailSending] = useState(false);
 
   const [err, action] = useFormState(
     () => registerAction(step, values, onSubmitStep),
@@ -82,6 +81,18 @@ export default function RegisterForm({
   );
 
   const { pending } = useFormStatus();
+
+  const { provinces, districts, subDistricts } = useGetProvince(step === 2);
+
+  const createUserMutation = useMutation({
+    mutationFn: authService.createUser,
+    onSuccess: () => setStep(4),
+    onError: (e) => {
+      if (e instanceof AxiosError) {
+        setErrorValidateField({ otp: e.response?.data?.error_message });
+      }
+    },
+  });
 
   const validatePasswordValid = useCallback((password: string) => {
     const lengthValid = password.trim().length >= 8;
@@ -94,21 +105,25 @@ export default function RegisterForm({
     });
   }, []);
 
-  const getData = async () => {
-    const [provinceRes, districtRes, subDistrictRes] = await Promise.all([
-      externalService.getProvince(),
-      externalService.getDistrict(),
-      externalService.getSubDistrict(),
-    ]);
+  const sendEmail = async () => {
+    if (values.code) {
+      onChangeValue("code", "");
+    }
 
-    setProvinces(provinceRes);
-    setDistricts(districtRes);
-    setSubDistricts(subDistrictRes);
+    setEmailSending(true);
+
+    try {
+      const { data } = await authService.verifyEmail({ email: values.email });
+
+      if (data?.verify_token) {
+        onChangeValue("verify_token", data.verify_token);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setEmailSending(false);
+    }
   };
-
-  useEffect(() => {
-    getData();
-  }, []);
 
   const onChangeValue = useCallback(
     (field: keyof typeof values, value: string) => {
@@ -179,8 +194,19 @@ export default function RegisterForm({
 
     if (hasInvalidField) return;
 
+    if (step === 2) {
+      sendEmail();
+    }
+
     if (step === 3) {
-      console.log("call register >>>", values);
+      createUserMutation.mutate({
+        ...values,
+        email: values.email.trim().toLowerCase(),
+        first_name: values.first_name.trim(),
+        last_name: values.last_name.trim(),
+      });
+
+      return;
     }
 
     setStep((prev) => (prev >= 3 ? 3 : prev + 1));
@@ -248,7 +274,9 @@ export default function RegisterForm({
               onChange={({ target: { value } }) =>
                 onChangeValue(
                   field.name,
-                  field.name === "phone_number" ? numberOnly(value) : value
+                  field.name === "phone_number"
+                    ? numberOnly(value)
+                    : value.toLowerCase()
                 )
               }
               name={field.name}
@@ -405,14 +433,35 @@ export default function RegisterForm({
       <div className="flex flex-col items-center w-full gap-2">
         <h2 className="text-xl">{"โปรดยืนยันรหัส"}</h2>
         <div className="flex gap-1 max-sm:flex-col">
-          <p className="text-slate-700">{"ระบบได้ส่งรหัสยืนยันไปยัง"}</p>
-          <p className="text-[#FF731D] font-medium">{values.email}</p>
+          {emailSending ? (
+            <p className="text-slate-700">{"ระบบกำลังส่งรหัสยืนยัน..."}</p>
+          ) : (
+            <Fragment>
+              <p className="text-slate-700">{"ระบบได้ส่งรหัสยืนยันไปยัง"}</p>
+              <p className="text-[#FF731D] font-medium">{values.email}</p>
+            </Fragment>
+          )}
         </div>
         <InputOtp
           value={values.code}
+          length={6}
           onChange={(code) => onChangeValue("code", code)}
-          inputProps={{ size: "lg" }}
+          inputProps={{
+            size: "lg",
+            isInvalid: Boolean(errorValidateField?.otp),
+            errorMessage: errorValidateField?.otp,
+          }}
         />
+        <div className="flex space-x-1 mt-3">
+          <p className="text-sm text-slate-700">{"ยังไม่ได้รับอีเมลล์"}</p>
+          <Link
+            className="text-sm cursor-pointer"
+            color="primary"
+            onClick={sendEmail}
+          >
+            {"ส่งใหม่อีกครั้ง"}
+          </Link>
+        </div>
       </div>
     );
   };
@@ -464,10 +513,13 @@ export default function RegisterForm({
         <CardFooter className="mt-3">
           <div className="flex flex-col w-full gap-3">
             <Button
-              isLoading={pending}
+              isLoading={
+                pending || emailSending || createUserMutation.isPending
+              }
               color={"primary"}
               className="w-full"
               type="submit"
+              isDisabled={step === 3 && values.code.length < 6}
             >
               {step >= 3 ? "ยืนยัน" : "ถัดไป"}
               <ChevronRight className="w-4 h-4" />
@@ -476,6 +528,7 @@ export default function RegisterForm({
               <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
               <Link
                 color="primary"
+                isDisabled={createUserMutation.isPending}
                 href={`/login?callback=${withRole}`}
                 className="cursor-pointer text-sm"
               >

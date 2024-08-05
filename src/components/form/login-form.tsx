@@ -13,6 +13,9 @@ import { InputPassword } from ".";
 import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { loginAction } from "@/actions";
+import { useMutation } from "@tanstack/react-query";
+import { authService } from "@/apis";
+import { AxiosError, HttpStatusCode } from "axios";
 
 export default function LoginForm() {
   const [values, setValues] = useState({ email: "", password: "" });
@@ -23,9 +26,13 @@ export default function LoginForm() {
   );
   const { pending } = useFormStatus();
 
-  const onSubmit = (data: typeof values) => {
-    console.log(123, data);
-  };
+  const loginUserMutation = useMutation({ mutationFn: authService.loginUser });
+
+  const error = loginUserMutation.error as AxiosError<{
+    error_message?: string;
+  }>;
+
+  const onSubmit = (data: typeof values) => loginUserMutation.mutate(data);
 
   const onChangeValue = useCallback(
     (field: keyof typeof values, value: string) =>
@@ -51,14 +58,28 @@ export default function LoginForm() {
               onChange={({ target: { value } }) =>
                 onChangeValue("email", value)
               }
-              isInvalid={Boolean(err?.email)}
-              errorMessage={err?.email?.[0]}
+              isInvalid={
+                Boolean(err?.email) ||
+                [HttpStatusCode.NotFound, HttpStatusCode.BadRequest].includes(
+                  Number(error?.response?.status)
+                )
+              }
+              errorMessage={
+                error?.response?.data?.error_message || err?.email?.[0]
+              }
             />
             <InputPassword
               variant="bordered"
               label="รหัสผ่าน"
-              isInvalid={Boolean(err?.password)}
-              errorMessage={err?.password?.[0]}
+              isInvalid={
+                Boolean(err?.password) ||
+                [HttpStatusCode.BadRequest].includes(
+                  Number(error?.response?.status)
+                )
+              }
+              errorMessage={
+                error?.response?.data?.error_message || err?.password?.[0]
+              }
               name="password"
               value={values.password}
               onChange={({ target: { value } }) =>
@@ -69,7 +90,11 @@ export default function LoginForm() {
         </CardBody>
         <CardFooter className="mt-3">
           <div className="flex flex-col w-full gap-4">
-            <Button type="submit" color="primary" isLoading={pending}>
+            <Button
+              type="submit"
+              color="primary"
+              isLoading={pending || loginUserMutation.isPending}
+            >
               {"ล็อคอิน"}
             </Button>
             <p className="flex gap-1 justify-center text-sm">
@@ -77,6 +102,7 @@ export default function LoginForm() {
               <Link
                 color="primary"
                 href="/registration"
+                isDisabled={loginUserMutation.isPending}
                 className="text-sm cursor-pointer hover:opacity-80"
               >
                 {"คลิกที่นี่"}
