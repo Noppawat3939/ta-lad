@@ -13,26 +13,43 @@ import { InputPassword } from ".";
 import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { loginAction } from "@/actions";
-import { useMutation } from "@tanstack/react-query";
-import { authService } from "@/apis";
 import { AxiosError, HttpStatusCode } from "axios";
+import { useRouter } from "next/navigation";
+import { useLogin } from "@/hooks";
+import type { LoginUser } from "@/types";
 
 export default function LoginForm() {
-  const [values, setValues] = useState({ email: "", password: "" });
+  const router = useRouter();
+
+  const [values, setValues] = useState<LoginUser>({ email: "", password: "" });
 
   const [err, formAction] = useFormState(
     () => loginAction(values, ({ data }) => onSubmit(data as typeof values)),
-    {}
+    null
   );
   const { pending } = useFormStatus();
 
-  const loginUserMutation = useMutation({ mutationFn: authService.loginUser });
+  const {
+    setCallbackLogin,
+    onLogin,
+    error: loginError,
+    isPending,
+  } = useLogin();
 
-  const error = loginUserMutation.error as AxiosError<{
+  const error = loginError as AxiosError<{
     error_message?: string;
   }>;
 
-  const onSubmit = (data: typeof values) => loginUserMutation.mutate(data);
+  const onSubmit = (data: typeof values) => {
+    setCallbackLogin({
+      onError: () => {
+        console.error("error");
+      },
+      onSuccess: () => router.push("/"),
+    });
+
+    onLogin(data);
+  };
 
   const onChangeValue = useCallback(
     (field: keyof typeof values, value: string) =>
@@ -93,7 +110,7 @@ export default function LoginForm() {
             <Button
               type="submit"
               color="primary"
-              isLoading={pending || loginUserMutation.isPending}
+              isLoading={pending || isPending}
             >
               {"ล็อคอิน"}
             </Button>
@@ -102,7 +119,7 @@ export default function LoginForm() {
               <Link
                 color="primary"
                 href="/registration"
-                isDisabled={loginUserMutation.isPending}
+                isDisabled={isPending}
                 className="text-sm cursor-pointer hover:opacity-80"
               >
                 {"คลิกที่นี่"}

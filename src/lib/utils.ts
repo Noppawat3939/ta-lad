@@ -9,3 +9,5 @@ export const hasLowerCase = (text: string) => /[a-z]/.test(text);
 export const hasUpperCase = (text: string) => /[A-Z]/.test(text);
 
 export const hasNumber = (text: string) => /\d/.test(text);
+
+export const delay = (ms = 300) => new Promise((rs) => setTimeout(rs, ms));

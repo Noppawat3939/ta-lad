@@ -1,3 +1,5 @@
+import type { JwtPayload } from "jwt-decode";
+
 export type ValidationResponse = {
   available: boolean;
   field?: string;
@@ -29,3 +31,9 @@ export type LoginUserResponse = {
   data: string;
   timestamps: number;
 };
+
+export type DecodeJwt = {
+  session_key: string;
+  id: number;
+  email: string;
+} & JwtPayload;
