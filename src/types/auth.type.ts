@@ -23,6 +23,7 @@ export type CreateUser = {
   sub_district: string;
   code: string;
   verify_token: string;
+  store_name: string;
 };
 
 export type LoginUser = Pick<CreateUser, "email" | "password">;

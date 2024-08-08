@@ -24,6 +24,15 @@ const secondSchema = z.object({
   sub_district: z.string().min(1, "กรุณาเลือกเขต/ตำบล"),
 });
 
+const secondSellerSchema = secondSchema
+  .omit({
+    first_name: true,
+    last_name: true,
+  })
+  .extend({
+    store_name: z.string().min(1, { message: "กรุณากรอกชื่อร้านค้า" }).trim(),
+  });
+
 export const registerAction = <
   TStep extends number,
   TValue extends Record<string, unknown>
@@ -33,6 +42,23 @@ export const registerAction = <
   done: (arg: z.SafeParseReturnType<TValue, {}>) => void
 ) => {
   const res = (curStep === 1 ? firstSchema : secondSchema).safeParse(
+    Object.fromEntries(Object.entries(values))
+  );
+
+  if (res.success) return done(res);
+
+  return res.error.formErrors.fieldErrors;
+};
+
+export const sellerRegisterAction = <
+  TStep extends number,
+  TValue extends Record<string, unknown>
+>(
+  curStep: TStep,
+  values: TValue,
+  done: (arg: z.SafeParseReturnType<TValue, {}>) => void
+) => {
+  const res = (curStep === 1 ? firstSchema : secondSellerSchema).safeParse(
     Object.fromEntries(Object.entries(values))
   );
 

@@ -16,21 +16,21 @@ import {
 import { InputOtp, InputPassword, SelectOption } from ".";
 import { ChevronRight, Circle, CircleCheckBig } from "lucide-react";
 import {
-  Fragment,
   type ReactNode,
+  Fragment,
   useCallback,
   useMemo,
   useState,
 } from "react";
 import { authService } from "@/apis";
-import { CreateUser } from "@/types";
 import { useFormState, useFormStatus } from "react-dom";
 import { hasLowerCase, hasNumber, hasUpperCase, numberOnly } from "@/lib";
-import { registerAction } from "@/actions";
+import { registerAction, sellerRegisterAction } from "@/actions";
 import { AnimateHidden } from "..";
 import { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { useGetProvince } from "@/hooks";
+import { CreateUser } from "@/types";
 
 const PASSWORD_CON_LABEL = {
   number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
@@ -50,6 +50,7 @@ const registerState = {
   province: "",
   district: "",
   sub_district: "",
+  store_name: "",
   code: "",
   verify_token: "",
 };
@@ -63,8 +64,10 @@ export default function RegisterForm({
   cardProps,
   withRole,
 }: RegisterFormProps) {
-  const [values, setValues] = useState<CreateUser>(registerState);
-  const [step, setStep] = useState(1);
+  const isRegisUser = withRole === "end-user";
+
+  const [values, setValues] = useState(registerState);
+  const [step, setStep] = useState(2);
   const [passwordIsValid, setPasswordIsValid] = useState({
     number: false,
     lowercase: false,
@@ -73,10 +76,12 @@ export default function RegisterForm({
   });
   const [errorValidateField, setErrorValidateField] =
     useState<Record<string, ReactNode>>();
-  const [emailSending, setEmailSending] = useState(false);
 
   const [err, action] = useFormState(
-    () => registerAction(step, values, onSubmitStep),
+    () =>
+      isRegisUser
+        ? registerAction(step, values, onSubmitStep)
+        : sellerRegisterAction(step, values, onSubmitStep),
     {}
   );
 
@@ -94,6 +99,23 @@ export default function RegisterForm({
     },
   });
 
+  const sendEmailMutation = useMutation({
+    mutationFn: authService.verifyEmail,
+    onError: (err) => {
+      console.error(err);
+    },
+    onSuccess: ({ data }) => {
+      if (data?.verify_token) {
+        onChangeValue("verify_token", data?.verify_token);
+      }
+    },
+    onMutate: () => {
+      if (values.code) {
+        onChangeValue("code", "");
+      }
+    },
+  });
+
   const validatePasswordValid = useCallback((password: string) => {
     const lengthValid = password.trim().length >= 8;
 
@@ -104,26 +126,6 @@ export default function RegisterForm({
       uppercase: hasUpperCase(password),
     });
   }, []);
-
-  const sendEmail = async () => {
-    if (values.code) {
-      onChangeValue("code", "");
-    }
-
-    setEmailSending(true);
-
-    try {
-      const { data } = await authService.verifyEmail({ email: values.email });
-
-      if (data?.verify_token) {
-        onChangeValue("verify_token", data.verify_token);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setEmailSending(false);
-    }
-  };
 
   const onChangeValue = useCallback(
     (field: keyof typeof values, value: string) => {
@@ -195,7 +197,7 @@ export default function RegisterForm({
     if (hasInvalidField) return;
 
     if (step === 2) {
-      sendEmail();
+      sendEmailMutation.mutate({ email: values.email });
     }
 
     if (step === 3) {
@@ -331,32 +333,36 @@ export default function RegisterForm({
   };
 
   const renderSecondStep = () => {
+    const FIELDS = [
+      { field: "first_name", label: "ขื่อจริง" },
+      { field: "last_name", label: "นามสกุล" },
+      { field: "store_name", label: "ชื่อร้านค้า" },
+    ] as { field: keyof CreateUser; label: string }[];
+
+    const inputFields = isRegisUser
+      ? FIELDS.filter((f) => f.field !== "store_name")
+      : FIELDS.filter((f) => f.field === "store_name");
+
     return (
       <Fragment>
-        <Input
-          label="ชื่อจริง"
-          value={values.first_name}
-          onChange={({ target: { value } }) =>
-            onChangeValue("first_name", value)
-          }
-          name="first_name"
-          errorMessage={error?.first_name?.[0]}
-          isInvalid={Boolean(error?.first_name)}
-          variant="bordered"
-          autoComplete="off"
-        />
-        <Input
-          label="นามสกุล"
-          value={values.last_name}
-          onChange={({ target: { value } }) =>
-            onChangeValue("last_name", value)
-          }
-          name="last_name"
-          errorMessage={error?.last_name?.[0]}
-          isInvalid={Boolean(error?.last_name)}
-          variant="bordered"
-          autoComplete="off"
-        />
+        {inputFields.map((inputField) => {
+          return (
+            <Input
+              key={inputField.field}
+              label={inputField.label}
+              value={values[inputField.field]}
+              name={inputField.field}
+              errorMessage={error?.[inputField.field]?.[0]}
+              isInvalid={Boolean(error?.[inputField.field])}
+              onChange={({ target: { value } }) =>
+                onChangeValue(inputField.field, value)
+              }
+              variant="bordered"
+              autoComplete="off"
+            />
+          );
+        })}
+
         <Input
           label="เลขบัตรประชาชน"
           value={values.id_card}
@@ -433,7 +439,7 @@ export default function RegisterForm({
       <div className="flex flex-col items-center w-full gap-2">
         <h2 className="text-xl">{"โปรดยืนยันรหัส"}</h2>
         <div className="flex gap-1 max-sm:flex-col">
-          {emailSending ? (
+          {sendEmailMutation.isPending ? (
             <p className="text-slate-700">{"ระบบกำลังส่งรหัสยืนยัน..."}</p>
           ) : (
             <Fragment>
@@ -457,7 +463,7 @@ export default function RegisterForm({
           <Link
             className="text-sm cursor-pointer"
             color="primary"
-            onClick={sendEmail}
+            onClick={() => sendEmailMutation.mutate({ email: values.email })}
           >
             {"ส่งใหม่อีกครั้ง"}
           </Link>
@@ -473,7 +479,11 @@ export default function RegisterForm({
           <h1 className="text-3xl font-medium max-md:text-2xl max-sm:text-xl">
             {"สวัสดี ยินต้อนรับสมาชิกใหม่ของเรา"}
           </h1>
-          <h3 className="text-lg ml-[20px] mt-2">{`คุณ ${values.first_name} ${values.last_name}`}</h3>
+          <h3 className="text-lg ml-[20px] mt-2">
+            {isRegisUser
+              ? `คุณ ${values.first_name} ${values.last_name}`
+              : `ร้าน ${values.store_name}`}
+          </h3>
           <AnimateHidden isCenter>
             <Image
               src="/images/completed.png"
@@ -500,7 +510,9 @@ export default function RegisterForm({
       <form action={action}>
         <CardHeader>
           <h2 className="text-xl font-semibold w-full text-center">
-            {"สมัครสมาชิกสำหรับผู้ใช้งานใหม่"}
+            {isRegisUser
+              ? "สมัครสมาชิกสำหรับผู้ใช้งานใหม่"
+              : "สมัครสมาชิกสำหรับร้านค้าใหม่"}
           </h2>
         </CardHeader>
         <CardBody>
@@ -514,7 +526,9 @@ export default function RegisterForm({
           <div className="flex flex-col w-full gap-3">
             <Button
               isLoading={
-                pending || emailSending || createUserMutation.isPending
+                pending ||
+                sendEmailMutation.isPending ||
+                createUserMutation.isPending
               }
               color={"primary"}
               className="w-full"
