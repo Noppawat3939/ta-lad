@@ -1,7 +1,7 @@
 import { MainLayout, RegisterForm } from "@/components";
 import { Metadata } from "next";
 
-export const metadata: Metadata = { title: "สมัครสมาชิกสำหรับลูกค้า" };
+export const metadata: Metadata = { title: "JUDPI สมัครสมาชิกสำหรับลูกค้า" };
 
 export default function RegisterWithUserPage() {
   return (

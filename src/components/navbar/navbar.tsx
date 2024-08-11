@@ -29,7 +29,14 @@ export default function Navbar({ className }: NavbarProps) {
             {"ย้อนกลับ"}
           </Link>
         )}
-        <h1 className="text-orange-500 text-lg font-extrabold">Logo app</h1>
+        <Link href="/">
+          <img
+            className="cursor-pointer"
+            alt="app-logo"
+            src="/images/logo-second.png"
+            width={120}
+          />
+        </Link>
       </div>
     </nav>
   );

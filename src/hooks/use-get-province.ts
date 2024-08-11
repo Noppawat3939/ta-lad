@@ -5,7 +5,7 @@ export default function useGetProvince(enabled = true) {
   const [provinceRes, districtRes, subDistrictRes] = useQueries({
     queries: [
       {
-        queryKey: ["provinces"],
+        queryKey: ["province"],
         queryFn: externalService.getProvince,
         enabled,
       },

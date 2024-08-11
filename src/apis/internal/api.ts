@@ -6,6 +6,7 @@ export const api = axios.create({
   timeout: 1000 * 30,
   headers: {
     locale: "th",
+    ["api-key"]: process.env.NEXT_PUBLIC_PRIVATE_KEY,
     ...(hasCookie("session") && { Authorization: getCookie("session") }),
     ...(hasCookie("rdtk") && { ["api-key"]: getCookie("rdtk") }),
   },

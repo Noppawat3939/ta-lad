@@ -67,7 +67,7 @@ export default function RegisterForm({
   const isRegisUser = withRole === "end-user";
 
   const [values, setValues] = useState(registerState);
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
   const [passwordIsValid, setPasswordIsValid] = useState({
     number: false,
     lowercase: false,
@@ -141,7 +141,7 @@ export default function RegisterForm({
   const proviceOptions = useMemo(
     () =>
       provinces.map((province) => ({
-        key: province.name_th,
+        key: String(province.id),
         value: province.name_th,
       })),
     [provinces]
@@ -281,6 +281,7 @@ export default function RegisterForm({
                     : value.toLowerCase()
                 )
               }
+              maxLength={field.name === "phone_number" ? 10 : undefined}
               name={field.name}
               isInvalid={
                 Boolean(errField) ||
@@ -395,7 +396,9 @@ export default function RegisterForm({
         <SelectOption
           label="จังหวัด"
           variant="bordered"
-          onChange={({ target: { value } }) => onChangeValue("province", value)}
+          onChange={({ target: { value } }) => {
+            onChangeValue("province", value);
+          }}
           options={proviceOptions}
           value={values.province}
           name="province"
@@ -409,9 +412,9 @@ export default function RegisterForm({
             isDisabled={!values.province && !Boolean(error?.district)}
             options={districtOptions}
             value={values.district}
-            onChange={({ target: { value } }) =>
-              onChangeValue("district", value)
-            }
+            onChange={({ target: { value } }) => {
+              onChangeValue("district", value);
+            }}
             name="district"
             isInvalid={Boolean(error?.district)}
             errorMessage={error?.district?.[0]}
