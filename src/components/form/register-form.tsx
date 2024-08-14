@@ -30,7 +30,7 @@ import { AnimateHidden } from "..";
 import { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { useGetProvince } from "@/hooks";
-import { CreateUser } from "@/types";
+import type { CreateUser } from "@/types";
 
 const PASSWORD_CON_LABEL = {
   number: "ตัวเลข (0-9) อย่างน้อย 1 ตัว",
@@ -90,7 +90,7 @@ export default function RegisterForm({
   const { provinces, districts, subDistricts } = useGetProvince(step === 2);
 
   const createUserMutation = useMutation({
-    mutationFn: authService.createUser,
+    mutationFn: isRegisUser ? authService.createUser : authService.createSeller,
     onSuccess: () => setStep(4),
     onError: (e) => {
       if (e instanceof AxiosError) {
@@ -141,7 +141,7 @@ export default function RegisterForm({
   const proviceOptions = useMemo(
     () =>
       provinces.map((province) => ({
-        key: String(province.id),
+        key: province.name_th,
         value: province.name_th,
       })),
     [provinces]
@@ -204,8 +204,10 @@ export default function RegisterForm({
       createUserMutation.mutate({
         ...values,
         email: values.email.trim().toLowerCase(),
-        first_name: values.first_name.trim(),
-        last_name: values.last_name.trim(),
+        ...(isRegisUser && {
+          first_name: values.first_name.trim(),
+          last_name: values.last_name.trim(),
+        }),
       });
 
       return;

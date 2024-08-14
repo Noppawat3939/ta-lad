@@ -18,8 +18,14 @@ import { useRouter } from "next/navigation";
 import { useLogin } from "@/hooks";
 import type { LoginUser } from "@/types";
 
-export default function LoginForm() {
+type LoginFormProps = {
+  withRole: "end-user" | "seller-user";
+};
+
+export default function LoginForm({ withRole }: LoginFormProps) {
   const router = useRouter();
+
+  const isSeller = withRole === "seller-user";
 
   const [values, setValues] = useState<LoginUser>({ email: "", password: "" });
 
@@ -34,7 +40,7 @@ export default function LoginForm() {
     onLogin,
     error: loginError,
     isPending,
-  } = useLogin();
+  } = useLogin(isSeller);
 
   const error = loginError as AxiosError<{
     error_message?: string;
@@ -62,7 +68,7 @@ export default function LoginForm() {
       <form action={formAction}>
         <CardHeader>
           <h1 className="text-2xl font-semibold text-center flex-1">
-            {"เข้าสู่ระบบ"}
+            {isSeller ? "เข้าสู่ระบบสำหรับร้านค้า" : "เข้าสู่ระบบ"}
           </h1>
         </CardHeader>
         <CardBody>
@@ -118,7 +124,7 @@ export default function LoginForm() {
               {"ยังไม่เคยลงทะเบียน"}
               <Link
                 color="primary"
-                href="/registration"
+                href={isSeller ? "/registration/seller-user" : "/registration"}
                 isDisabled={isPending}
                 className="text-sm cursor-pointer hover:opacity-80"
               >

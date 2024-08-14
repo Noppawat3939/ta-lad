@@ -39,11 +39,24 @@ export const createUser = async (body: CreateUser) => {
   return data;
 };
 
+export const createSeller = async (body: CreateUser) => {
+  const { data } = await api.post<ServiceResponse<undefined>>(
+    "/auth/create-user-seller",
+    body
+  );
+  return data;
+};
+
 export const loginUser = async (body: LoginUser) => {
   const { data } = await api.post<ServiceResponse<LoginUserResponse>>(
     "/auth/login-user",
     body
   );
 
+  return data;
+};
+
+export const loginSeller = async (body: LoginUser) => {
+  const { data } = await api.post("/auth/login-seller", body);
   return data;
 };

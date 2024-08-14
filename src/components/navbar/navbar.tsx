@@ -5,12 +5,13 @@ import { cn } from "@nextui-org/theme";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-type NavbarProps = { className?: string };
+type NavbarProps = { className?: string; hideBackBtn?: boolean };
 
-export default function Navbar({ className }: NavbarProps) {
+export default function Navbar({
+  className,
+  hideBackBtn = false,
+}: NavbarProps) {
   const router = useRouter();
-
-  const showBackBtn = true;
 
   return (
     <nav
@@ -20,7 +21,7 @@ export default function Navbar({ className }: NavbarProps) {
       )}
     >
       <div className="flex flex-1 relative justify-center">
-        {showBackBtn && (
+        {!hideBackBtn && (
           <Link
             onClick={router.back}
             className="absolute left-10 max-md:left-6 max-sm:left-3 text-sm top-[50%] cursor-pointer translate-y-[-50%]"

@@ -37,4 +37,5 @@ export type DecodeJwt = {
   session_key: string;
   id: number;
   email: string;
+  store_name?: string;
 } & JwtPayload;

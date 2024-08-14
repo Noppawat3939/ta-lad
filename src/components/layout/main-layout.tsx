@@ -6,6 +6,7 @@ type MainLayoutProps = Readonly<
   PropsWithChildren & {
     className?: string;
     hideNavbar?: boolean;
+    hideBackBtn?: boolean;
   }
 >;
 
@@ -13,10 +14,11 @@ export default function MainLayout({
   children,
   className,
   hideNavbar = false,
+  hideBackBtn = false,
 }: MainLayoutProps) {
   return (
     <main>
-      {!hideNavbar && <Navbar />}
+      {!hideNavbar && <Navbar hideBackBtn={hideBackBtn} />}
       <section
         aria-label="main-layout"
         className={cn(
