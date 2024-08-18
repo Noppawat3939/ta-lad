@@ -1,6 +1,6 @@
 "use client";
 
-import { type PropsWithChildren } from "react";
+import { ReactNode, type PropsWithChildren } from "react";
 import { BussinessAside, ContentLayout } from "..";
 import {
   Avatar,
@@ -11,23 +11,38 @@ import {
   DropdownTrigger,
   cn,
 } from "@nextui-org/react";
-import { ChevronDown, LogOut, User } from "lucide-react";
+import { ChevronDown, LogOut, LucideProps, User } from "lucide-react";
 
 type SidebarLayoutProps = Readonly<PropsWithChildren> & {
   activeKey?: string;
+  activeSubMenuKey?: string;
   classNames?: { contentLayout?: string };
+  injectSubMenu?: {
+    key: string;
+    children: {
+      key: string;
+      label: ReactNode;
+      icon?: LucideProps;
+    }[];
+  };
 };
 
 export default function SidebarLayout({
   children,
   activeKey,
   classNames,
+  injectSubMenu,
+  activeSubMenuKey,
 }: SidebarLayoutProps) {
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
       <div className="flex h-full">
         <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10">
-          <BussinessAside activeKey={activeKey} />
+          <BussinessAside
+            activeKey={activeKey}
+            activeSubMenuKey={activeSubMenuKey}
+            injectSubMenu={injectSubMenu}
+          />
         </div>
         <div className="flex-1 h-full">
           <section

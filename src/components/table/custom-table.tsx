@@ -28,6 +28,7 @@ type IBodyColumn = {
 } & Record<string, ReactNode>;
 
 type CustomTableProps = {
+  onRow?: (rowData: IBodyColumn, rowIndex: number) => void;
   headerColumns: IHeaderColumn;
   bodyColumns: IBodyColumn[];
   classNames?: {
@@ -42,6 +43,7 @@ export default function CustomTable({
   bodyColumns,
   classNames,
   topContent,
+  onRow,
 }: CustomTableProps) {
   const renderHeader = () => {
     const mapped = Object.keys(headerColumns)
@@ -56,14 +58,21 @@ export default function CustomTable({
   };
 
   const renderBody = () => {
-    return bodyColumns.map((item) => {
+    return bodyColumns.map((item, i) => {
       const { key, ...rest } = item;
 
       return (
-        <TableRow key={key} className={classNames?.tBodyRow}>
-          {Object.keys(rest).map((f) => (
-            <TableCell className={classNames?.tBodyCell} key={f}>
-              {item[f]}
+        <TableRow
+          onClick={() => onRow?.(item, i)}
+          key={key}
+          className={classNames?.tBodyRow}
+        >
+          {Object.keys(rest).map((restItem, i) => (
+            <TableCell
+              className={classNames?.tBodyCell}
+              key={`${restItem}-${i}`}
+            >
+              {item[restItem]}
             </TableCell>
           ))}
         </TableRow>
