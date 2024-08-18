@@ -3,7 +3,7 @@ import type {
   CreateUser,
   LoginUser,
   LoginUserResponse,
-  ServiceResponse,
+  ServiceResponse as TRes,
   ValidationResponse,
   VerifyEmailResponse,
 } from "@/types";
@@ -12,8 +12,9 @@ export const validateField = async (body: {
   email?: string;
   phone_number?: string;
   id_card?: string;
+  role?: string;
 }) => {
-  const { data } = await api.post<ServiceResponse<ValidationResponse>>(
+  const { data } = await api.post<TRes<ValidationResponse>>(
     "/user/validate",
     body
   );
@@ -22,7 +23,7 @@ export const validateField = async (body: {
 };
 
 export const verifyEmail = async (body: { email: string }) => {
-  const { data } = await api.post<ServiceResponse<VerifyEmailResponse>>(
+  const { data } = await api.post<TRes<VerifyEmailResponse>>(
     "/auth/verify-email",
     body
   );
@@ -31,16 +32,13 @@ export const verifyEmail = async (body: { email: string }) => {
 };
 
 export const createUser = async (body: CreateUser) => {
-  const { data } = await api.post<ServiceResponse<undefined>>(
-    "/auth/create-user",
-    body
-  );
+  const { data } = await api.post<TRes<undefined>>("/auth/create-user", body);
 
   return data;
 };
 
 export const createSeller = async (body: CreateUser) => {
-  const { data } = await api.post<ServiceResponse<undefined>>(
+  const { data } = await api.post<TRes<undefined>>(
     "/auth/create-user-seller",
     body
   );
@@ -48,7 +46,7 @@ export const createSeller = async (body: CreateUser) => {
 };
 
 export const loginUser = async (body: LoginUser) => {
-  const { data } = await api.post<ServiceResponse<LoginUserResponse>>(
+  const { data } = await api.post<TRes<LoginUserResponse>>(
     "/auth/login-user",
     body
   );

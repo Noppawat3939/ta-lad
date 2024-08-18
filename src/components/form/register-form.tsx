@@ -224,7 +224,10 @@ export default function RegisterForm({
     id_card?: string;
   }) => {
     try {
-      const { data } = await authService.validateField(fieldValue);
+      const { data } = await authService.validateField({
+        ...fieldValue,
+        ...(!isRegisUser && { role: "store" }),
+      });
 
       if (!data?.available && data?.field) {
         setErrorValidateField({ [data.field]: data.error_message });
@@ -499,11 +502,7 @@ export default function RegisterForm({
         </CardBody>
         <CardFooter className="justify-center space-x-2">
           <p>{"เข้าสู่ระบบ"}</p>
-          <Button
-            as={Link}
-            href={`/login?callback=${withRole}`}
-            color="primary"
-          >
+          <Button as={Link} href={`/login/${withRole}`} color="primary">
             {"ล็อคอิน"}
           </Button>
         </CardFooter>
@@ -548,7 +547,7 @@ export default function RegisterForm({
               <Link
                 color="primary"
                 isDisabled={createUserMutation.isPending}
-                href={`/login?callback=${withRole}`}
+                href={`/login/${withRole}`}
                 className="cursor-pointer text-sm"
               >
                 {"ล็อคอิน"}
