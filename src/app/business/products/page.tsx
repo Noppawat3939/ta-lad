@@ -4,14 +4,9 @@ import { CustomTable, SidebarLayout } from "@/components";
 import { dateFormatter, priceFormatter } from "@/lib";
 import { Button } from "@nextui-org/react";
 import { Plus } from "lucide-react";
-import { Metadata } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
-
-export const metada: Metadata = {
-  title: "JUDPI | ",
-};
 
 export default function ProductsPage() {
   const pathname = usePathname();
