@@ -3,10 +3,15 @@
 import { CustomTable, SidebarLayout } from "@/components";
 import { dateFormatter, priceFormatter } from "@/lib";
 import { Button } from "@nextui-org/react";
-import { CirclePlus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+
+export const metada: Metadata = {
+  title: "JUDPI | ",
+};
 
 export default function ProductsPage() {
   const pathname = usePathname();
@@ -24,7 +29,7 @@ export default function ProductsPage() {
           <Button
             as={Link}
             href={`${pathname}/insert`}
-            startContent={<CirclePlus className="w-4 h-4" />}
+            startContent={<Plus className="w-4 h-4" />}
             color="primary"
           >
             {"Add Product"}

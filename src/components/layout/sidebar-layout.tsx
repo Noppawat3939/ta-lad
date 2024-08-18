@@ -3,13 +3,13 @@
 import { ReactNode, type PropsWithChildren } from "react";
 import { BussinessAside, ContentLayout } from "..";
 import {
-  Avatar,
   Button,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
   cn,
+  User as NextUiUser,
 } from "@nextui-org/react";
 import { ChevronDown, LogOut, LucideProps, User } from "lucide-react";
 
@@ -37,7 +37,7 @@ export default function SidebarLayout({
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
       <div className="flex h-full">
-        <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10">
+        <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10 max-md:max-w-[200px]">
           <BussinessAside
             activeKey={activeKey}
             activeSubMenuKey={activeSubMenuKey}
@@ -74,18 +74,14 @@ function ProfileDropdown({
   return (
     <Dropdown>
       <div className="flex items-center space-x-2">
-        <Avatar name="Junior" />
-        <div className="flex flex-col space-y-[-2px]">
-          <h4 className="font-medium text-[15px]" aria-label="store-name">
-            {"Store name"}
-          </h4>
-          <p className="text-gray-400/80 text-[12px]">{"example@gmail.com"}</p>
+        <div className="flex">
+          <NextUiUser name={"Store name"} description={"example@gmail.com"} />
+          <DropdownTrigger>
+            <Button size="sm" variant="light" isIconOnly>
+              <ChevronDown className="text-slate-800 w-5 h-5" />
+            </Button>
+          </DropdownTrigger>
         </div>
-        <DropdownTrigger>
-          <Button size="sm" variant="light" isIconOnly>
-            <ChevronDown className="text-slate-800 w-5 h-5" />
-          </Button>
-        </DropdownTrigger>
       </div>
       <DropdownMenu
         selectionMode="single"

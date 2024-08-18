@@ -1,11 +1,15 @@
+"use client";
+
 import { Fragment, ReactNode, useMemo } from "react";
 import { Button, cn } from "@nextui-org/react";
-import { LucideProps, ShoppingCart, Tag } from "lucide-react";
+import { CornerDownRight, LucideProps, ShoppingCart, Tag } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Menu = {
   key: string;
   label: ReactNode;
   icon?: LucideProps;
+  onClick?: () => void;
 };
 
 type BussinessAsideProps = {
@@ -26,11 +30,16 @@ export default function BussinessAside({
   activeSubMenuKey,
   injectSubMenu,
 }: BussinessAsideProps) {
+  const router = useRouter();
+
+  const goTo = (href: string) => router.push(href);
+
   const defaultMenu = [
     {
       key: "products",
       label: "Products",
       icon: <Tag />,
+      onClick: () => goTo("/business/products"),
     },
     { key: "orders", label: "Orders", icon: <ShoppingCart /> },
   ] as (Menu & { children?: Menu[] })[];
@@ -63,6 +72,7 @@ export default function BussinessAside({
           <div key={menu.key}>
             <Button
               variant="light"
+              onClick={menu.onClick}
               className={cn(
                 "text-start w-full",
                 activeKey && activeKey === menu.key
@@ -83,7 +93,11 @@ export default function BussinessAside({
             </Button>
 
             {menu?.children?.map((subMenu) => (
-              <div className="ml-[20px]" key={`sub-menu-${subMenu?.key}`}>
+              <div
+                className="pl-5 flex space-x-1 items-center"
+                key={`sub-menu-${subMenu?.key}`}
+              >
+                <CornerDownRight className="w-4 h-4 text-slate-300" />
                 <Button
                   variant="light"
                   className={cn(
