@@ -1,6 +1,6 @@
 "use client";
 
-import { SidebarLayout } from "@/components";
+import { CustomTable, SidebarLayout } from "@/components";
 import {
   Button,
   Card,
@@ -11,10 +11,21 @@ import {
   Tabs,
 } from "@nextui-org/react";
 import axios from "axios";
-import { FileInput, Link, Upload } from "lucide-react";
+import { Car, FileInput, Link, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import * as xlsx from "xlsx";
+
+interface IUploadData {
+  product_name: string;
+  product_image: ReactNode;
+  product_price: number;
+  stock_amount: number;
+}
+
+type IRawDUploadData = Omit<IUploadData, "product_image"> & {
+  product_image: string;
+};
 
 type InsertMethod = "google_sheet" | "csv" | "form";
 
@@ -24,10 +35,13 @@ const GOOGLE_SHEET_TEST_URL =
 export default function ProductInsertPage() {
   const router = useRouter();
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const [insertMethod, setInsertMethod] =
     useState<InsertMethod>("google_sheet");
   const [googleSheetUrl, setGoogleSheetUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadData, setUploadData] = useState<IUploadData[]>([]);
 
   const getData = async () => {
     try {
@@ -91,7 +105,7 @@ export default function ProductInsertPage() {
     ];
 
     return (
-      <Card>
+      <Card shadow="none" radius="sm" className="border-2 border-slate-50">
         <CardHeader>
           <div className="flex flex-col space-y-1">
             <h3 className="text-xl">
@@ -131,6 +145,90 @@ export default function ProductInsertPage() {
     );
   };
 
+  const renderCsvUploadCard = () => {
+    return (
+      <Card shadow="none" radius="sm" className="border-2 border-slate-50">
+        <CardHeader>
+          <div className="flex flex-col space-y-1">
+            <h3 className="text-xl">{"เลือกไฟล์ที่ต้องการอัพโหลด"}</h3>
+            <small>
+              <span className="text-red-500 mr-1">*</span>
+              {"ต้องเป็นไฟล์ที่มีนามสกุล .csv เท่านั้น"}
+            </small>
+          </div>
+        </CardHeader>
+        <CardBody>
+          <div>
+            <Button
+              isLoading={uploading}
+              className="w-fit"
+              onClick={() => {
+                setUploading(true);
+                inputRef.current?.click();
+              }}
+            >
+              {"Upload file"}
+            </Button>
+          </div>
+          <Input
+            ref={inputRef}
+            className="hidden"
+            type="file"
+            accept=".csv"
+            onChange={({ target: { files } }) => {
+              const file = files?.[0];
+              const reader = new FileReader();
+
+              reader.onload = ({ target }) => {
+                const workBook = xlsx.read(target?.result, {
+                  type: "binary",
+                });
+                const sheetName = workBook.SheetNames[0];
+                const sheet = workBook.Sheets[sheetName];
+                const sheetData: IRawDUploadData[] =
+                  xlsx.utils.sheet_to_json(sheet);
+
+                const RegexImgFile = /\.(jpg|jpeg|png|gif|webp)$/;
+
+                const productImages = sheetData
+                  .map((item) => item?.product_image)
+                  ?.every((img) => RegexImgFile.test(img));
+
+                if (productImages) {
+                  const mapped = sheetData.map((item) => ({
+                    ...item,
+                    product_image: (
+                      <picture>
+                        <img
+                          alt="product_image"
+                          src={item.product_image}
+                          width={100}
+                        />
+                      </picture>
+                    ),
+                  }));
+
+                  setUploadData(mapped);
+                }
+              };
+
+              setUploading(false);
+              reader.readAsBinaryString(file as unknown as Blob);
+            }}
+          />
+        </CardBody>
+      </Card>
+    );
+  };
+
+  const renderMannualFormCard = () => {
+    return (
+      <Card shadow="sm">
+        <CardBody>form</CardBody>
+      </Card>
+    );
+  };
+
   const insertTabs = [
     {
       key: "google_sheet",
@@ -142,13 +240,13 @@ export default function ProductInsertPage() {
       key: "csv",
       icon: Upload,
       label: "Upload csv file",
-      children: renderLinkGoogleSheetCard(),
+      children: renderCsvUploadCard(),
     },
     {
       key: "form",
       icon: FileInput,
       label: "Mannual form",
-      children: renderLinkGoogleSheetCard(),
+      children: renderMannualFormCard(),
     },
   ];
 
@@ -158,7 +256,7 @@ export default function ProductInsertPage() {
       activeSubMenuKey="insert"
       injectSubMenu={injectSubMenu}
     >
-      <section className="px-3">
+      <section className="px-3 mb-2">
         <h1 className="text-2xl text-slate-900 font-semibold">
           {"Insert Product"}
         </h1>
@@ -184,26 +282,21 @@ export default function ProductInsertPage() {
           </Tab>
         ))}
       </Tabs>
-      <br />
-      <input
-        hidden
-        type="file"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          const reader = new FileReader();
-
-          reader.onload = (e) => {
-            const workBook = xlsx.read(e.target?.result, { type: "binary" });
-            const sheetName = workBook.SheetNames[0];
-            const sheet = workBook.Sheets[sheetName];
-            const sheetData = xlsx.utils.sheet_to_json(sheet);
-
-            console.log(sheetName, sheet, sheetData);
-          };
-
-          reader.readAsBinaryString(file as unknown as Blob);
-        }}
-      />
+      <section className="border-2 border-slate-50 p-3 rounded-lg">
+        <CustomTable
+          classNames={{
+            wrapper: "max-h-[calc(100vh_-_320px)]",
+            tBodyRow: "odd:bg-[#ff741d15] rounded-sm",
+          }}
+          headerColumns={{
+            product_name: { children: "product_name", order: 1 },
+            product_image: { children: "product_image", order: 2 },
+            product_price: { children: "product_price", order: 3, width: 150 },
+            stock_amount: { children: "stock_amount", order: 4, width: 150 },
+          }}
+          bodyColumns={uploadData}
+        />
+      </section>
     </SidebarLayout>
   );
 }

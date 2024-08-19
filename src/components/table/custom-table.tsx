@@ -11,6 +11,7 @@ import {
   TableCellProps,
   TableProps,
 } from "@nextui-org/react";
+import { Package } from "lucide-react";
 import { ReactNode } from "react";
 
 type IHeaderColumn = Record<
@@ -27,10 +28,10 @@ type IBodyColumn = {
   width?: TableColumnProps<any>["width"];
 } & Record<string, ReactNode>;
 
-type CustomTableProps = {
+type CustomTableProps<TBody> = {
   onRow?: (rowData: IBodyColumn, rowIndex: number) => void;
   headerColumns: IHeaderColumn;
-  bodyColumns: IBodyColumn[];
+  bodyColumns: IBodyColumn[] | TBody;
   classNames?: {
     wrapper?: string;
     tBodyRow?: TableRowProps["className"];
@@ -38,13 +39,13 @@ type CustomTableProps = {
   };
 } & Pick<TableProps, "topContent">;
 
-export default function CustomTable({
+export default function CustomTable<TBody extends any[]>({
   headerColumns,
   bodyColumns,
   classNames,
   topContent,
   onRow,
-}: CustomTableProps) {
+}: CustomTableProps<TBody>) {
   const renderHeader = () => {
     const mapped = Object.keys(headerColumns)
       .map((key) => ({ ...headerColumns[key], key }))
@@ -80,6 +81,8 @@ export default function CustomTable({
     });
   };
 
+  const isEmptyData = bodyColumns.length === 0;
+
   return (
     <Table
       shadow="none"
@@ -89,7 +92,18 @@ export default function CustomTable({
       classNames={{ wrapper: cn("p-0 rounded", classNames?.wrapper) }}
     >
       <TableHeader>{renderHeader()}</TableHeader>
-      <TableBody>{renderBody()}</TableBody>
+      <TableBody
+        emptyContent={
+          isEmptyData ? (
+            <div className="flex text-gray-300 flex-col justify-center space-y-2 mx-auto items-center w-fit">
+              <Package className="w-6 h-6" />
+              <p className="text-sm">{"no data"}</p>
+            </div>
+          ) : undefined
+        }
+      >
+        {isEmptyData ? [] : renderBody()}
+      </TableBody>
     </Table>
   );
 }
