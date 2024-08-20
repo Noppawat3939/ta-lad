@@ -1,31 +1,32 @@
 "use client";
 
 import { CustomTable, SidebarLayout } from "@/components";
+import { RegexImgFile, isEmpty, parseCSV } from "@/lib";
 import {
   Button,
   Card,
   CardBody,
+  CardFooter,
   CardHeader,
   Input,
   Tab,
   Tabs,
 } from "@nextui-org/react";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Car, FileInput, Link, Upload } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { ReactNode, useRef, useState } from "react";
+import { FileInput, Link, Upload } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, useRef, useState, useEffect } from "react";
 import * as xlsx from "xlsx";
 
 interface IUploadData {
   product_name: string;
   product_image: ReactNode;
-  product_price: number;
-  stock_amount: number;
+  product_price: number | string;
+  stock_amount: number | string;
 }
 
-type IRawDUploadData = Omit<IUploadData, "product_image"> & {
-  product_image: string;
-};
+type IRawDUploadData = Record<keyof IUploadData, string>;
 
 type InsertMethod = "google_sheet" | "csv" | "form";
 
@@ -34,55 +35,95 @@ const GOOGLE_SHEET_TEST_URL =
 
 export default function ProductInsertPage() {
   const router = useRouter();
+  const search = useSearchParams();
+  const searchMethod = search.get("method");
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [insertMethod, setInsertMethod] =
-    useState<InsertMethod>("google_sheet");
+  const [insertMethod, setInsertMethod] = useState<InsertMethod>("form");
   const [googleSheetUrl, setGoogleSheetUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadData, setUploadData] = useState<IUploadData[]>([]);
 
-  const getData = async () => {
-    try {
-      const res = await axios.get(googleSheetUrl);
-      const parsed = parseCSV(res.data);
-      if (parsed.length > 0) {
-        console.log(1, parsed);
+  const fetchGoogleSheetMutation = useMutation({
+    mutationFn: async () => await axios.get<string>(googleSheetUrl),
+    onSuccess: ({ data: rawData }) => {
+      const parsed = parseCSV<IRawDUploadData[]>(rawData);
+      if (!isEmpty(parsed)) {
+        if (validateImageRawData(parsed)) {
+          setUploadData(mappingUploadDataDto(parsed));
+        }
 
         setGoogleSheetUrl("");
-
-        router.replace(
-          `/business/products/insert?sheet_url=${encodeURI(googleSheetUrl)}`
-        );
       }
-    } catch (error) {
-      console.log(error);
+    },
+  });
+
+  useEffect(() => {
+    if (searchMethod) {
+      setInsertMethod(searchMethod as InsertMethod);
+    }
+  }, []);
+
+  const replaceUrl = (q = "") =>
+    router.replace(`/business/products/insert${q}`, { scroll: false });
+
+  const validateImageRawData = (rawData: IRawDUploadData[]) => {
+    const isValid = rawData
+      .map((item) => item?.product_image)
+      ?.every((img) => RegexImgFile.test(img));
+
+    return isValid;
+  };
+
+  const mappingUploadDataDto = (rawData: IRawDUploadData[]) => {
+    const mapped = rawData.map((item) => ({
+      ...item,
+      product_image: (
+        <picture>
+          <img alt="product_image" src={item.product_image} width={100} />
+        </picture>
+      ),
+    }));
+
+    return mapped;
+  };
+
+  const handleUploadCsv = (file: File) => {
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+
+      reader.onload = ({ target }) => {
+        const workBook = xlsx.read(target?.result, {
+          type: "binary",
+        });
+        const sheetName = workBook.SheetNames[0];
+        const sheet = workBook.Sheets[sheetName];
+        const sheetData: IRawDUploadData[] = xlsx.utils.sheet_to_json(sheet);
+
+        if (validateImageRawData(sheetData)) {
+          mappingUploadDataDto(sheetData);
+
+          setUploadData(mappingUploadDataDto(sheetData));
+        }
+      };
+
+      reader.readAsBinaryString(file as unknown as Blob);
+    } catch (err) {
+      console.error(err);
     } finally {
       setUploading(false);
     }
   };
 
-  const parseCSV = (csvText: string) => {
-    const rows = csvText.split(/\r?\n/);
-    const headers = rows[0].split(",");
-
-    let data = [];
-    for (let i = 1; i < rows.length; i++) {
-      const rowData = rows[i].split(",");
-      const rowObject: Record<string, string> = {};
-      for (let j = 0; j < headers.length; j++) {
-        rowObject[headers[j]] = rowData[j];
-      }
-      data.push(rowObject);
-    }
-    return data;
-  };
-
   const handleImportDataGoogleSheet = () => {
-    setUploading(true);
+    if (!isEmpty(uploadData)) {
+      setUploadData([]);
+    }
 
-    getData();
+    fetchGoogleSheetMutation.mutate();
   };
 
   const injectSubMenu = {
@@ -132,7 +173,7 @@ export default function ProductInsertPage() {
               placeholder="https://docs.google.com/spreadsheets/xxxxxxxxxxxxxxxxxxx"
             />
             <Button
-              isLoading={uploading}
+              isLoading={fetchGoogleSheetMutation.isPending}
               onClick={handleImportDataGoogleSheet}
               isDisabled={!googleSheetUrl}
               color="secondary"
@@ -162,10 +203,7 @@ export default function ProductInsertPage() {
             <Button
               isLoading={uploading}
               className="w-fit"
-              onClick={() => {
-                setUploading(true);
-                inputRef.current?.click();
-              }}
+              onClick={() => inputRef.current?.click()}
             >
               {"Upload file"}
             </Button>
@@ -177,43 +215,10 @@ export default function ProductInsertPage() {
             accept=".csv"
             onChange={({ target: { files } }) => {
               const file = files?.[0];
-              const reader = new FileReader();
 
-              reader.onload = ({ target }) => {
-                const workBook = xlsx.read(target?.result, {
-                  type: "binary",
-                });
-                const sheetName = workBook.SheetNames[0];
-                const sheet = workBook.Sheets[sheetName];
-                const sheetData: IRawDUploadData[] =
-                  xlsx.utils.sheet_to_json(sheet);
-
-                const RegexImgFile = /\.(jpg|jpeg|png|gif|webp)$/;
-
-                const productImages = sheetData
-                  .map((item) => item?.product_image)
-                  ?.every((img) => RegexImgFile.test(img));
-
-                if (productImages) {
-                  const mapped = sheetData.map((item) => ({
-                    ...item,
-                    product_image: (
-                      <picture>
-                        <img
-                          alt="product_image"
-                          src={item.product_image}
-                          width={100}
-                        />
-                      </picture>
-                    ),
-                  }));
-
-                  setUploadData(mapped);
-                }
-              };
-
-              setUploading(false);
-              reader.readAsBinaryString(file as unknown as Blob);
+              if (file) {
+                handleUploadCsv(file);
+              }
             }}
           />
         </CardBody>
@@ -224,17 +229,43 @@ export default function ProductInsertPage() {
   const renderMannualFormCard = () => {
     return (
       <Card shadow="sm">
-        <CardBody>form</CardBody>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <CardHeader>
+            <h3 className="text-xl">{"Insert Product Form"}</h3>
+          </CardHeader>
+          <CardBody>
+            <div className="flex flex-col gap-4">
+              <Input label={"Product name"} name="product_name" />
+              <Input label={"Product image"} name="product_image" />
+              <div className="flex space-x-3">
+                <Input label={"Product price"} name="prodcut_price" />
+                <Input label={"Stock"} name="stock_amount" />
+              </div>
+            </div>
+          </CardBody>
+          <CardFooter className="flex justify-center space-x-2">
+            <Button color="primary" type="submit" className="flex-[.15]">
+              {"Add"}
+            </Button>
+            <Button variant="bordered" type="reset" className="flex-[.15]">
+              {"Cancel"}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     );
   };
 
   const insertTabs = [
     {
-      key: "google_sheet",
-      icon: Link,
-      label: "Link google sheet",
-      children: renderLinkGoogleSheetCard(),
+      key: "form",
+      icon: FileInput,
+      label: "Mannual form",
+      children: renderMannualFormCard(),
     },
     {
       key: "csv",
@@ -243,10 +274,10 @@ export default function ProductInsertPage() {
       children: renderCsvUploadCard(),
     },
     {
-      key: "form",
-      icon: FileInput,
-      label: "Mannual form",
-      children: renderMannualFormCard(),
+      key: "google_sheet",
+      icon: Link,
+      label: "Link google sheet",
+      children: renderLinkGoogleSheetCard(),
     },
   ];
 
@@ -262,9 +293,10 @@ export default function ProductInsertPage() {
         </h1>
       </section>
       <Tabs
-        onSelectionChange={(selected) =>
-          setInsertMethod(selected as InsertMethod)
-        }
+        onSelectionChange={(selected) => {
+          setInsertMethod(selected as InsertMethod);
+          replaceUrl(`?method=${selected}`);
+        }}
         selectedKey={insertMethod}
         color={"secondary"}
       >
