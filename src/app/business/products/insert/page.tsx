@@ -1,6 +1,11 @@
 "use client";
 
-import { CustomTable, SidebarLayout } from "@/components";
+import {
+  CustomTable,
+  InsertProductForm,
+  SelectOption,
+  SidebarLayout,
+} from "@/components";
 import { RegexImgFile, isEmpty, parseCSV } from "@/lib";
 import {
   Button,
@@ -226,46 +231,12 @@ export default function ProductInsertPage() {
     );
   };
 
-  const renderMannualFormCard = () => {
-    return (
-      <Card shadow="sm">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <CardHeader>
-            <h3 className="text-xl">{"Insert Product Form"}</h3>
-          </CardHeader>
-          <CardBody>
-            <div className="flex flex-col gap-4">
-              <Input label={"Product name"} name="product_name" />
-              <Input label={"Product image"} name="product_image" />
-              <div className="flex space-x-3">
-                <Input label={"Product price"} name="prodcut_price" />
-                <Input label={"Stock"} name="stock_amount" />
-              </div>
-            </div>
-          </CardBody>
-          <CardFooter className="flex justify-center space-x-2">
-            <Button color="primary" type="submit" className="flex-[.15]">
-              {"Add"}
-            </Button>
-            <Button variant="bordered" type="reset" className="flex-[.15]">
-              {"Cancel"}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
-    );
-  };
-
   const insertTabs = [
     {
       key: "form",
       icon: FileInput,
-      label: "Mannual form",
-      children: renderMannualFormCard(),
+      label: "Insert Form",
+      children: <InsertProductForm />,
     },
     {
       key: "csv",
@@ -314,7 +285,7 @@ export default function ProductInsertPage() {
           </Tab>
         ))}
       </Tabs>
-      <section className="border-2 border-slate-50 p-3 rounded-lg">
+      <section className="border-2 border-slate-50 p-3 rounded-lg hidden">
         <CustomTable
           classNames={{
             wrapper: "max-h-[calc(100vh_-_320px)]",
