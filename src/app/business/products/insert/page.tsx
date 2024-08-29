@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  CustomTable,
-  InsertProductForm,
-  SelectOption,
-  SidebarLayout,
-} from "@/components";
+import { CustomTable, InsertProductForm, SidebarLayout } from "@/components";
 import { RegexImgFile, isEmpty, parseCSV } from "@/lib";
 import {
   Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
   Input,
   Tab,

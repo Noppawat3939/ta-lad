@@ -1,7 +1,7 @@
+import { Fragment, useCallback, useRef, useState } from "react";
 import { delay } from "@/lib";
 import { Button, Image } from "@nextui-org/react";
-import { Upload, X } from "lucide-react";
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Trash2, Upload } from "lucide-react";
 
 type ImageUploadProps = {
   max?: number;
@@ -84,13 +84,13 @@ export default function ImageUpload({ max = 4 }: ImageUploadProps) {
               className="relative border border-slate-100 rounded p-3"
             >
               <Button
-                className="z-[2] absolute rounded-full h-6 top-1 right-1"
+                className="z-[2] absolute rounded-full border-red-200 h-6 top-1 right-1"
                 size="sm"
                 variant="bordered"
                 isIconOnly
                 onClick={() => handleRemove(i)}
               >
-                <X className="w-3 h-3 text-gray-400" />
+                <Trash2 className="w-3 h-3 text-red-500" />
               </Button>
               <Image
                 src={image}
