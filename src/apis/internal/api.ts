@@ -7,7 +7,13 @@ export const api = axios.create({
   headers: {
     locale: "th",
     ["api-key"]: process.env.NEXT_PUBLIC_PRIVATE_KEY,
-    ...(hasCookie("session") && { Authorization: getCookie("session") }),
-    ...(hasCookie("rdtk") && { ["api-key"]: getCookie("rdtk") }),
+    ...(hasCookie("session") && {
+      Authorization: `Bearer ${getCookie("session")}`,
+    }),
+    ...(hasCookie("store_session") && {
+      Authorization: `Bearer ${getCookie("store_session")}`,
+    }),
+    ...(hasCookie("rdtk") && { ["session-key"]: getCookie("rdtk") }),
+    ...(hasCookie("srdtk") && { ["session-key"]: getCookie("srdtk") }),
   },
 });

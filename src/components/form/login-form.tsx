@@ -124,7 +124,7 @@ export default function LoginForm({ withRole }: LoginFormProps) {
               {"ยังไม่เคยลงทะเบียน"}
               <Link
                 color="primary"
-                href={isSeller ? "/registration/seller-user" : "/registration"}
+                href={`/registration/${withRole}`}
                 isDisabled={isPending}
                 className="text-sm cursor-pointer hover:opacity-80"
               >
