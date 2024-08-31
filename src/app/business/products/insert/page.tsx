@@ -1,6 +1,11 @@
 "use client";
 
-import { CustomTable, InsertProductForm, SidebarLayout } from "@/components";
+import {
+  CustomTable,
+  InsertProductForm,
+  Modal,
+  SidebarLayout,
+} from "@/components";
 import { RegexImgFile, isEmpty, parseCSV } from "@/lib";
 import {
   Button,
@@ -294,6 +299,7 @@ export default function ProductInsertPage() {
           bodyColumns={uploadData}
         />
       </section>
+      <Modal />
     </SidebarLayout>
   );
 }

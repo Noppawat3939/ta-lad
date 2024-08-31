@@ -16,4 +16,5 @@ export interface InsertProduct {
   discount_price?: number;
   discount_start_date?: string;
   discount_end_date?: string;
+  product_image?: string[];
 }
