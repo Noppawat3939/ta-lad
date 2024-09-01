@@ -15,8 +15,11 @@ export const hasNumber = (text: string) => /\d/.test(text);
 
 export const delay = (ms = 300) => new Promise((rs) => setTimeout(rs, ms));
 
-export const priceFormatter = (price = 0) =>
-  price ? Intl.NumberFormat("th").format(price) : 0;
+export const priceFormatter = (price = 0, withCurrency = false) => {
+  const formatted = price ? Intl.NumberFormat("th").format(price) : 0;
+
+  return withCurrency ? `${formatted} THB` : formatted;
+};
 
 export const dateFormatter = (date?: TDate, format?: TDateFormat) =>
   date ? dayjs(date).format(format) : "";
@@ -56,3 +59,6 @@ export const isEmptyObj = <O extends object>(o: O) =>
   isEmptyArray(Object.keys(o));
 
 export const isEmptyArray = <A extends unknown[]>(a: A) => a.length === 0;
+
+export const truncate = (text: string, len = 50) =>
+  text.length > len ? text.slice(0, len) + "..." : text;

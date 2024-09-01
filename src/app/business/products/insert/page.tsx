@@ -20,7 +20,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { FileInput, Link, Upload } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useRef, useState, useEffect } from "react";
+import { type ReactNode, useRef, useState, useEffect, Suspense } from "react";
 import * as xlsx from "xlsx";
 
 interface IUploadData {
@@ -37,7 +37,7 @@ type InsertMethod = "google_sheet" | "csv" | "form";
 const GOOGLE_SHEET_TEST_URL =
   "https://docs.google.com/spreadsheets/d/10q7cJqt8F3ce-OsAcP5vmXjhLOnYq19yWiwYWmYD30U/pub?output=csv";
 
-export default function ProductInsertPage() {
+function ProductInsert() {
   const router = useRouter();
   const search = useSearchParams();
   const searchMethod = search.get("method");
@@ -293,7 +293,11 @@ export default function ProductInsertPage() {
           headerColumns={{
             product_name: { children: "product_name", order: 1 },
             product_image: { children: "product_image", order: 2 },
-            product_price: { children: "product_price", order: 3, width: 150 },
+            product_price: {
+              children: "product_price",
+              order: 3,
+              width: 150,
+            },
             stock_amount: { children: "stock_amount", order: 4, width: 150 },
           }}
           bodyColumns={uploadData}
@@ -301,5 +305,13 @@ export default function ProductInsertPage() {
       </section>
       <Modal />
     </SidebarLayout>
+  );
+}
+
+export default function ProductInsertPage() {
+  return (
+    <Suspense>
+      <ProductInsert />
+    </Suspense>
   );
 }
