@@ -10,9 +10,10 @@ import {
   cn,
   TableCellProps,
   TableProps,
+  Spinner,
 } from "@nextui-org/react";
 import { Package } from "lucide-react";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 type IHeaderColumn = Record<
   string,
@@ -20,6 +21,7 @@ type IHeaderColumn = Record<
     children: ReactNode;
     width?: TableColumnProps<any>["width"];
     order: number;
+    align?: TableColumnProps<unknown>["align"];
   }
 >;
 
@@ -37,6 +39,7 @@ type CustomTableProps<TBody> = {
     tBodyRow?: TableRowProps["className"];
     tBodyCell?: TableCellProps["className"];
   };
+  isLoading?: boolean;
 } & Pick<TableProps, "topContent">;
 
 export default function CustomTable<TBody extends any[]>({
@@ -45,6 +48,7 @@ export default function CustomTable<TBody extends any[]>({
   classNames,
   topContent,
   onRow,
+  isLoading = false,
 }: CustomTableProps<TBody>) {
   const renderHeader = () => {
     const mapped = Object.keys(headerColumns)
@@ -52,7 +56,11 @@ export default function CustomTable<TBody extends any[]>({
       .sort((a, b) => a.order - b.order);
 
     return mapped.map((hCol) => (
-      <TableColumn key={hCol.key} width={hCol?.width}>
+      <TableColumn
+        key={hCol.key}
+        width={hCol?.width}
+        align={hCol.align || "start"}
+      >
         {hCol.children}
       </TableColumn>
     ));
@@ -93,6 +101,8 @@ export default function CustomTable<TBody extends any[]>({
     >
       <TableHeader>{renderHeader()}</TableHeader>
       <TableBody
+        isLoading={isLoading}
+        loadingContent={<Spinner size="sm" />}
         emptyContent={
           isEmptyData ? (
             <div className="flex text-gray-300 flex-col justify-center space-y-2 mx-auto items-center w-fit">

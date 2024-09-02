@@ -5,3 +5,5 @@ export * from "./navbar";
 export * from "./animation";
 export * from "./modal";
 export * from "./table";
+export * from "./card";
+export * from "./image";

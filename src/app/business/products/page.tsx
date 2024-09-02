@@ -1,15 +1,128 @@
 "use client";
 
-import { CustomTable, SidebarLayout } from "@/components";
-import { dateFormatter, priceFormatter } from "@/lib";
-import { Button } from "@nextui-org/react";
-import { Plus } from "lucide-react";
+import { productService } from "@/apis";
+import { CustomTable, ProductCard, SidebarLayout } from "@/components";
+import { useDebounce } from "@/hooks";
+import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
+import { Button, Input, Tab, Tabs } from "@nextui-org/react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlignJustify,
+  FolderOpen,
+  LayoutGrid,
+  Plus,
+  SquarePen,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const pathname = usePathname();
+  const { data, isFetching } = useQuery({
+    queryFn: productService.getSellerProductList,
+    queryKey: ["seller-product"],
+    select: ({ data }) => data?.data || [],
+  });
+
+  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
+  const [search, setSearch] = useState("");
+
+  const debouncedSearch = useDebounce(search, 500);
+
+  const products = useMemo(
+    () =>
+      isEmpty(data)
+        ? []
+        : data!.map((item) => ({
+            key: item.id.toString(),
+            product_name: truncate(item.product_name, 40),
+            brand: item.brand,
+            product_category: item.category_name,
+            price: priceFormatter(item.price),
+            stock: item.stock_amount,
+            created_at: dateFormatter(item.created_at, "YYYY-MM-DD"),
+            action: (
+              <div className="flex space-x-1">
+                <Button
+                  as={Link}
+                  href={`/business/products/view?id=${item.id}`}
+                  color="primary"
+                  size="sm"
+                  isIconOnly
+                  variant="light"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                </Button>
+                <Button
+                  as={Link}
+                  href={`/business/products/edit?id=${item.id}`}
+                  className="text-gray-600/60"
+                  size="sm"
+                  isIconOnly
+                  variant="light"
+                >
+                  <SquarePen className="w-4 h-4" />
+                </Button>
+              </div>
+            ),
+          })),
+    [data]
+  );
+
+  const productsTable = useMemo(() => {
+    const cleanedDebounced = debouncedSearch.toLowerCase().trim();
+
+    const result = cleanedDebounced
+      ? products.filter((product) =>
+          [
+            product.brand.toLowerCase().trim().includes(cleanedDebounced),
+            product.product_name
+              .toLowerCase()
+              .trim()
+              .includes(cleanedDebounced),
+            product.product_category
+              .toLowerCase()
+              .trim()
+              .includes(cleanedDebounced),
+          ].some(Boolean)
+        )
+      : products;
+
+    return result;
+  }, [products, debouncedSearch]);
+
+  const renderTable = () => (
+    <CustomTable
+      isLoading={isFetching || search !== debouncedSearch}
+      classNames={{
+        wrapper: "max-h-[calc(100vh_-_240px)]",
+        tBodyRow: "odd:bg-slate-50/60 rounded-sm",
+      }}
+      headerColumns={{
+        product_name: { children: "Product name", order: 1 },
+        brand: { children: "Brand", order: 2, width: 180 },
+        product_category: {
+          children: "Category",
+          order: 3,
+          width: 150,
+        },
+        price: { children: "Price", order: 4, width: 120 },
+        stock: { children: "Stock", order: 5, width: 120 },
+        created_at: { children: "Created date", order: 6, width: 150 },
+        action: { children: "Action", order: 7, width: 100, align: "center" },
+      }}
+      bodyColumns={productsTable}
+    />
+  );
+
+  const renderCards = () => (
+    <div className="grid grid-cols-3 gap-4">
+      {data?.map((product) => (
+        <ProductCard key={`product-${product.id}`} {...product} />
+      ))}
+    </div>
+  );
 
   return (
     <SidebarLayout
@@ -17,42 +130,50 @@ export default function ProductsPage() {
       classNames={{ contentLayout: "px-4 py-3" }}
     >
       <section className="bg-white">
-        <div className="flex justify-between py-3">
+        <div className="flex justify-between items-center py-3">
           <h1 className="text-2xl text-slate-900 font-semibold">
-            {"Products"}
+            {"สินค้าทั้งหมด"}
           </h1>
-          <Button
-            as={Link}
-            href={`${pathname}/insert`}
-            startContent={<Plus className="w-4 h-4" />}
-            color="primary"
-          >
-            {"Add Product"}
-          </Button>
+
+          <div className="flex flex-[.55] space-x-4">
+            <Input
+              variant="bordered"
+              className="flex-1"
+              isClearable
+              onClear={() => setSearch("")}
+              autoComplete="off"
+              classNames={{ input: "placeholder:text-gray-400" }}
+              placeholder={"ค้นหา"}
+              value={search}
+              onChange={({ target: { value } }) => setSearch(value)}
+            />
+            <Tabs
+              isDisabled={isFetching}
+              color="primary"
+              defaultSelectedKey="list"
+              onSelectionChange={(key) => {
+                const selected = key as typeof viewProdcut;
+                setViewProduct(selected);
+              }}
+            >
+              <Tab title={<AlignJustify className="w-4 h-4" />} key="list" />
+              <Tab title={<LayoutGrid className="w-4 h-4" />} key="grid" />
+            </Tabs>
+            <Button
+              as={Link}
+              href={`${pathname}/insert`}
+              startContent={<Plus className="w-4 h-4" />}
+              color="primary"
+              isLoading={isFetching}
+            >
+              {"เพิ่มสินค้าใหม่"}
+            </Button>
+          </div>
         </div>
         <section className="border-2 border-slate-50 p-3 rounded-lg">
           <Suspense>
-            <CustomTable
-              classNames={{
-                wrapper: "max-h-[calc(100vh_-_240px)]",
-                tBodyRow: "odd:bg-[#ff741d15] rounded-sm",
-              }}
-              headerColumns={{
-                product_name: { children: "Product name", order: 1 },
-                product_category: { children: "Category", order: 2 },
-                price: { children: "Price", order: 3, width: 150 },
-                stock: { children: "Stock", order: 4, width: 150 },
-                created_at: { children: "Created date", order: 5, width: 200 },
-              }}
-              bodyColumns={Array(25).fill({
-                key: "1",
-                product_name: "Labubu",
-                product_category: "toy",
-                price: priceFormatter(550),
-                stock: priceFormatter(12500),
-                created_at: dateFormatter(Date.now(), "YYYY-MM-DD"),
-              })}
-            />
+            {viewProdcut === "list" && renderTable()}
+            {viewProdcut === "grid" && renderCards()}
           </Suspense>
         </section>
       </section>
