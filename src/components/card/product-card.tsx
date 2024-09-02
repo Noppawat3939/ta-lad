@@ -1,5 +1,5 @@
 import { dateFormatter, priceFormatter } from "@/lib";
-import { Product } from "@/types";
+import type { Product } from "@/types";
 import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
 import { ImageSlider } from "..";
 

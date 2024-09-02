@@ -2,14 +2,15 @@ import { TDateFormat } from "./../types/shared.type";
 import dayjs from "dayjs";
 import pkg from "../../package.json";
 import type { TDate } from "@/types";
+import { RegexLowercase, RegexNumber, RegexUppercase } from ".";
 
 export const getVersion = () => pkg.version;
 
-export const numberOnly = (value: string) => value.replace(/[^0-9]/g, "");
+export const numberOnly = (value: string) => value.replace(RegexNumber, "");
 
-export const hasLowerCase = (text: string) => /[a-z]/.test(text);
+export const hasLowerCase = (text: string) => RegexLowercase.test(text);
 
-export const hasUpperCase = (text: string) => /[A-Z]/.test(text);
+export const hasUpperCase = (text: string) => RegexUppercase.test(text);
 
 export const hasNumber = (text: string) => /\d/.test(text);
 
@@ -55,8 +56,8 @@ export const isEmpty = (value: any) => {
   );
 };
 
-export const isEmptyObj = <O extends object>(o: O) =>
-  isEmptyArray(Object.keys(o));
+export const isEmptyObj = <O extends object>(obj: O) =>
+  isEmptyArray(Object.keys(obj));
 
 export const isEmptyArray = <A extends unknown[]>(a: A) => a.length === 0;
 

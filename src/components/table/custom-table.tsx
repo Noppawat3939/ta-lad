@@ -21,6 +21,7 @@ type IHeaderColumn = Record<
     children: ReactNode;
     width?: TableColumnProps<any>["width"];
     order: number;
+    align?: TableColumnProps<unknown>["align"];
   }
 >;
 
@@ -55,7 +56,11 @@ export default function CustomTable<TBody extends any[]>({
       .sort((a, b) => a.order - b.order);
 
     return mapped.map((hCol) => (
-      <TableColumn key={hCol.key} width={hCol?.width}>
+      <TableColumn
+        key={hCol.key}
+        width={hCol?.width}
+        align={hCol.align || "start"}
+      >
         {hCol.children}
       </TableColumn>
     ));

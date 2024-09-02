@@ -2,10 +2,17 @@
 
 import { productService } from "@/apis";
 import { CustomTable, ProductCard, SidebarLayout } from "@/components";
+import { useDebounce } from "@/hooks";
 import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
-import { Button, Tab, Tabs } from "@nextui-org/react";
+import { Button, Input, Tab, Tabs } from "@nextui-org/react";
 import { useQuery } from "@tanstack/react-query";
-import { AlignJustify, LayoutGrid, Plus } from "lucide-react";
+import {
+  AlignJustify,
+  FolderOpen,
+  LayoutGrid,
+  Plus,
+  SquarePen,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
@@ -19,6 +26,9 @@ export default function ProductsPage() {
   });
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
+  const [search, setSearch] = useState("");
+
+  const debouncedSearch = useDebounce(search, 500);
 
   const products = useMemo(
     () =>
@@ -32,16 +42,62 @@ export default function ProductsPage() {
             price: priceFormatter(item.price),
             stock: item.stock_amount,
             created_at: dateFormatter(item.created_at, "YYYY-MM-DD"),
+            action: (
+              <div className="flex space-x-1">
+                <Button
+                  as={Link}
+                  href={`/business/products/view?id=${item.id}`}
+                  color="primary"
+                  size="sm"
+                  isIconOnly
+                  variant="light"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                </Button>
+                <Button
+                  as={Link}
+                  href={`/business/products/edit?id=${item.id}`}
+                  className="text-gray-600/60"
+                  size="sm"
+                  isIconOnly
+                  variant="light"
+                >
+                  <SquarePen className="w-4 h-4" />
+                </Button>
+              </div>
+            ),
           })),
     [data]
   );
 
+  const productsTable = useMemo(() => {
+    const cleanedDebounced = debouncedSearch.toLowerCase().trim();
+
+    const result = cleanedDebounced
+      ? products.filter((product) =>
+          [
+            product.brand.toLowerCase().trim().includes(cleanedDebounced),
+            product.product_name
+              .toLowerCase()
+              .trim()
+              .includes(cleanedDebounced),
+            product.product_category
+              .toLowerCase()
+              .trim()
+              .includes(cleanedDebounced),
+          ].some(Boolean)
+        )
+      : products;
+
+    return result;
+  }, [products, debouncedSearch]);
+
   const renderTable = () => (
     <CustomTable
-      isLoading={isFetching}
+      isLoading={isFetching || search !== debouncedSearch}
       classNames={{
         wrapper: "max-h-[calc(100vh_-_240px)]",
-        tBodyRow: "odd:bg-[#ff741d15] rounded-sm",
+        tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
         product_name: { children: "Product name", order: 1 },
@@ -54,20 +110,19 @@ export default function ProductsPage() {
         price: { children: "Price", order: 4, width: 120 },
         stock: { children: "Stock", order: 5, width: 120 },
         created_at: { children: "Created date", order: 6, width: 150 },
+        action: { children: "Action", order: 7, width: 100, align: "center" },
       }}
-      bodyColumns={products}
+      bodyColumns={productsTable}
     />
   );
 
-  const renderCards = () => {
-    return (
-      <div className="grid grid-cols-3 gap-4">
-        {data?.map((product) => (
-          <ProductCard key={`product-${product.id}`} {...product} />
-        ))}
-      </div>
-    );
-  };
+  const renderCards = () => (
+    <div className="grid grid-cols-3 gap-4">
+      {data?.map((product) => (
+        <ProductCard key={`product-${product.id}`} {...product} />
+      ))}
+    </div>
+  );
 
   return (
     <SidebarLayout
@@ -75,13 +130,25 @@ export default function ProductsPage() {
       classNames={{ contentLayout: "px-4 py-3" }}
     >
       <section className="bg-white">
-        <div className="flex justify-between py-3">
+        <div className="flex justify-between items-center py-3">
           <h1 className="text-2xl text-slate-900 font-semibold">
-            {"Products"}
+            {"สินค้าทั้งหมด"}
           </h1>
 
-          <div className="flex space-x-4">
+          <div className="flex flex-[.55] space-x-4">
+            <Input
+              variant="bordered"
+              className="flex-1"
+              isClearable
+              onClear={() => setSearch("")}
+              autoComplete="off"
+              classNames={{ input: "placeholder:text-gray-400" }}
+              placeholder={"ค้นหา"}
+              value={search}
+              onChange={({ target: { value } }) => setSearch(value)}
+            />
             <Tabs
+              isDisabled={isFetching}
               color="primary"
               defaultSelectedKey="list"
               onSelectionChange={(key) => {
@@ -97,8 +164,9 @@ export default function ProductsPage() {
               href={`${pathname}/insert`}
               startContent={<Plus className="w-4 h-4" />}
               color="primary"
+              isLoading={isFetching}
             >
-              {"Add Product"}
+              {"เพิ่มสินค้าใหม่"}
             </Button>
           </div>
         </div>

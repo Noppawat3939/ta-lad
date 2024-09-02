@@ -19,8 +19,15 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { FileInput, Link, Upload } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useRef, useState, useEffect, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import {
+  type ReactNode,
+  useRef,
+  useState,
+  useEffect,
+  Suspense,
+  useMemo,
+} from "react";
 import * as xlsx from "xlsx";
 
 interface IUploadData {
@@ -34,6 +41,8 @@ type IRawDUploadData = Record<keyof IUploadData, string>;
 
 type InsertMethod = "google_sheet" | "csv" | "form";
 
+type PageParams = { action: "view" | "edit" | "insert" };
+
 const GOOGLE_SHEET_TEST_URL =
   "https://docs.google.com/spreadsheets/d/10q7cJqt8F3ce-OsAcP5vmXjhLOnYq19yWiwYWmYD30U/pub?output=csv";
 
@@ -42,7 +51,12 @@ function ProductInsert() {
   const search = useSearchParams();
   const searchMethod = search.get("method");
 
+  const params: PageParams = useParams();
+
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isView = params.action === "view";
+  const isEdit = params.action === "edit";
 
   const [insertMethod, setInsertMethod] = useState<InsertMethod>("form");
   const [googleSheetUrl, setGoogleSheetUrl] = useState("");
@@ -130,15 +144,30 @@ function ProductInsert() {
     fetchGoogleSheetMutation.mutate();
   };
 
-  const injectSubMenu = {
+  let injectSubMenu = {
     key: "products",
     children: [
-      {
-        key: "insert",
-        label: "Insert",
-      },
+      // {
+      //   key: "insert",
+      //   label: "Insert",
+      // },
+      // { key: "view", label: "View" },
     ],
   };
+
+  const injectedSubMenu = useMemo(() => {
+    let inject = {
+      key: "products",
+      children: [
+        {
+          key: isView ? "view" : isEdit ? "edit" : "insert",
+          label: isView ? "View" : isEdit ? "Edit" : "Insert",
+        },
+      ],
+    };
+
+    return inject;
+  }, [params.action]);
 
   const renderLinkGoogleSheetCard = () => {
     const howtoPublishUrl = [
@@ -255,7 +284,7 @@ function ProductInsert() {
     <SidebarLayout
       classNames={{ contentLayout: "px-4 py-3" }}
       activeSubMenuKey="insert"
-      injectSubMenu={injectSubMenu}
+      injectSubMenu={injectedSubMenu}
     >
       <section className="px-3 mb-2">
         <h1 className="text-2xl text-slate-900 font-semibold">

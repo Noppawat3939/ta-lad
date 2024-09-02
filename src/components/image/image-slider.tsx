@@ -1,5 +1,3 @@
-"use client";
-
 import { Image, cn } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -11,15 +9,15 @@ type ImageSliderProps = {
 export default function ImageSlider({ images }: ImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const prevSlide = useCallback(() => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
-    );
-  }, []);
+  const handleDecreaseIndex = useCallback(
+    () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length),
+    []
+  );
 
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-  }, []);
+  const handleIncreaseIndex = useCallback(
+    () => setCurrentIndex((prev) => (prev + 1) % images.length),
+    []
+  );
 
   const hasOneImage = useMemo(() => images.length <= 1, [images]);
 
@@ -36,7 +34,7 @@ export default function ImageSlider({ images }: ImageSliderProps) {
           "absolute left-0 top-1/2 transition-all duration-200 hover:opacity-70",
           hasOneImage ? "hidden" : undefined
         )}
-        onClick={prevSlide}
+        onClick={handleDecreaseIndex}
       >
         <ChevronLeft className="text-gray-400" />
       </button>
@@ -45,7 +43,7 @@ export default function ImageSlider({ images }: ImageSliderProps) {
           "absolute right-0 top-1/2 transition-all duration-200 hover:opacity-70",
           hasOneImage ? "hidden" : undefined
         )}
-        onClick={nextSlide}
+        onClick={handleIncreaseIndex}
       >
         <ChevronRight className="text-gray-400" />
       </button>
