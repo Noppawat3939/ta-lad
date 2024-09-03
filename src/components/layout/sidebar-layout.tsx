@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, type PropsWithChildren } from "react";
+import type { ReactNode, PropsWithChildren } from "react";
 import { BussinessAside, ContentLayout } from "..";
 import {
   Button,
@@ -12,6 +12,8 @@ import {
   User as NextUiUser,
 } from "@nextui-org/react";
 import { ChevronDown, LogOut, LucideProps, User } from "lucide-react";
+import { useGetUser } from "@/hooks";
+import { User as UserType } from "@/types";
 
 type SidebarLayoutProps = Readonly<PropsWithChildren> & {
   activeKey?: string;
@@ -34,6 +36,8 @@ export default function SidebarLayout({
   injectSubMenu,
   activeSubMenuKey,
 }: SidebarLayoutProps) {
+  const user = useGetUser();
+
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
       <div className="flex h-full">
@@ -53,6 +57,7 @@ export default function SidebarLayout({
               onSelect={(currentKey) => {
                 console.log(currentKey);
               }}
+              user={user}
             />
           </section>
           <ContentLayout
@@ -68,14 +73,26 @@ export default function SidebarLayout({
 
 function ProfileDropdown({
   onSelect,
+  user,
 }: {
   onSelect: (currentKey: string) => void;
+  user?: UserType;
 }) {
   return (
     <Dropdown>
       <div className="flex items-center space-x-2">
         <div className="flex">
-          <NextUiUser name={"Store name"} description={"example@gmail.com"} />
+          <NextUiUser
+            avatarProps={
+              user?.profile_image
+                ? {
+                    src: user.profile_image,
+                  }
+                : undefined
+            }
+            name={user?.store_name}
+            description={user?.email}
+          />
           <DropdownTrigger>
             <Button size="sm" variant="light" isIconOnly>
               <ChevronDown className="text-slate-800 w-5 h-5" />

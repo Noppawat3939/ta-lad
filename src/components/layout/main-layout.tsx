@@ -1,6 +1,6 @@
-import { cn } from "@nextui-org/theme";
 import { type PropsWithChildren } from "react";
-import { Modal, Navbar } from "..";
+import { cn } from "@nextui-org/theme";
+import { Navbar } from "..";
 
 type MainLayoutProps = Readonly<
   PropsWithChildren & {

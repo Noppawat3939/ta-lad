@@ -73,24 +73,48 @@ export default function ProductsPage() {
   const productsTable = useMemo(() => {
     const cleanedDebounced = debouncedSearch.toLowerCase().trim();
 
-    const result = cleanedDebounced
-      ? products.filter((product) =>
-          [
-            product.brand.toLowerCase().trim().includes(cleanedDebounced),
-            product.product_name
-              .toLowerCase()
-              .trim()
-              .includes(cleanedDebounced),
-            product.product_category
-              .toLowerCase()
-              .trim()
-              .includes(cleanedDebounced),
-          ].some(Boolean)
-        )
-      : products;
+    const result =
+      cleanedDebounced && viewProdcut === "list"
+        ? products.filter((product) =>
+            [
+              product.brand.toLowerCase().trim().includes(cleanedDebounced),
+              product.product_name
+                .toLowerCase()
+                .trim()
+                .includes(cleanedDebounced),
+              product.product_category
+                .toLowerCase()
+                .trim()
+                .includes(cleanedDebounced),
+            ].some(Boolean)
+          )
+        : products;
 
     return result;
-  }, [products, debouncedSearch]);
+  }, [products, debouncedSearch, viewProdcut]);
+
+  const productsCard = useMemo(() => {
+    const cleanedDebounced = debouncedSearch.toLowerCase().trim();
+
+    const result =
+      cleanedDebounced && viewProdcut === "grid"
+        ? data?.filter((product) =>
+            [
+              product.brand.toLowerCase().trim().includes(cleanedDebounced),
+              product.product_name
+                .toLowerCase()
+                .trim()
+                .includes(cleanedDebounced),
+              product.category_name
+                .toLowerCase()
+                .trim()
+                .includes(cleanedDebounced),
+            ].some(Boolean)
+          )
+        : data;
+
+    return result;
+  }, [data, debouncedSearch, viewProdcut]);
 
   const renderTable = () => (
     <CustomTable
@@ -118,7 +142,7 @@ export default function ProductsPage() {
 
   const renderCards = () => (
     <div className="grid grid-cols-3 gap-4">
-      {data?.map((product) => (
+      {productsCard?.map((product) => (
         <ProductCard key={`product-${product.id}`} {...product} />
       ))}
     </div>
