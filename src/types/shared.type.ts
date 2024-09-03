@@ -32,3 +32,14 @@ export interface UploadImage {
   original_filename: string;
   api_key: string;
 }
+
+export interface User {
+  id: number;
+  email: string;
+  profile_image: string;
+  created_at: string;
+  updated_at: string;
+  first_name?: string;
+  last_name?: string;
+  store_name?: string;
+}
