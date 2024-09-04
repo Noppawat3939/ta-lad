@@ -32,10 +32,9 @@ export default function Navbar({
         )}
         <Link href="/">
           <img
-            className="cursor-pointer"
+            className="cursor-pointer object-cover h-[80px] w-[120px]"
             alt="app-logo"
             src="/images/logo-second.png"
-            width={120}
           />
         </Link>
       </div>

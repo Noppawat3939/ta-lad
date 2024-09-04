@@ -42,4 +42,7 @@ export interface User {
   first_name?: string;
   last_name?: string;
   store_name?: string;
+  role: Role;
 }
+
+export type Role = "user" | "store" | "admin";

@@ -12,8 +12,8 @@ import {
   User as NextUiUser,
 } from "@nextui-org/react";
 import { ChevronDown, LogOut, LucideProps, User } from "lucide-react";
-import { useGetUser } from "@/hooks";
-import { User as UserType } from "@/types";
+import type { User as UserType } from "@/types";
+import { useUserStore } from "@/stores";
 
 type SidebarLayoutProps = Readonly<PropsWithChildren> & {
   activeKey?: string;
@@ -36,7 +36,7 @@ export default function SidebarLayout({
   injectSubMenu,
   activeSubMenuKey,
 }: SidebarLayoutProps) {
-  const user = useGetUser();
+  const user = useUserStore((s) => s.user);
 
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
@@ -76,7 +76,7 @@ function ProfileDropdown({
   user,
 }: {
   onSelect: (currentKey: string) => void;
-  user?: UserType;
+  user: UserType | null;
 }) {
   return (
     <Dropdown>

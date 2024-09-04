@@ -1,12 +1,12 @@
+import { useEffect } from "react";
 import { userService } from "@/apis";
 import { useUserStore } from "@/stores";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 export default function useGetUser() {
   const { setUser } = useUserStore();
 
-  const { data } = useQuery({
+  const { data, ...rest } = useQuery({
     queryKey: ["user"],
     staleTime: 60000,
     queryFn: userService.getUser,
@@ -14,9 +14,11 @@ export default function useGetUser() {
 
   useEffect(() => {
     if (data?.data) {
-      setUser(data.data);
+      setUser(data.data.data);
     }
   }, [data?.data]);
 
-  return data?.data;
+  const userData = data?.data?.data;
+
+  return { userData, ...rest };
 }

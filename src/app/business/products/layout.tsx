@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
 import type { Metadata } from "next";
+import { AuthProvider } from "@/provider";
 
 type ProductLayoutProps = PropsWithChildren;
 
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function ProductLayout({ children }: ProductLayoutProps) {
-  return <main aria-label="products-layout">{children}</main>;
+  return (
+    <AuthProvider allowedRoles={["store"]}>
+      <section aria-label="products-layout">{children}</section>
+    </AuthProvider>
+  );
 }

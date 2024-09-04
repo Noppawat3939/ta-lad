@@ -1,3 +1,5 @@
+"use client";
+
 import { Image, cn } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
