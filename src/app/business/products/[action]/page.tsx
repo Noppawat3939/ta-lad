@@ -64,7 +64,8 @@ function ProductInsert() {
   const [uploadData, setUploadData] = useState<IUploadData[]>([]);
 
   const fetchGoogleSheetMutation = useMutation({
-    mutationFn: async () => await axios.get<string>(googleSheetUrl),
+    mutationFn: async () =>
+      await axios.get<string>(googleSheetUrl, { timeout: 5000 }),
     onSuccess: ({ data: rawData }) => {
       const parsed = parseCSV<IRawDUploadData[]>(rawData);
       if (!isEmpty(parsed)) {
@@ -142,17 +143,6 @@ function ProductInsert() {
     }
 
     fetchGoogleSheetMutation.mutate();
-  };
-
-  let injectSubMenu = {
-    key: "products",
-    children: [
-      // {
-      //   key: "insert",
-      //   label: "Insert",
-      // },
-      // { key: "view", label: "View" },
-    ],
   };
 
   const injectedSubMenu = useMemo(() => {

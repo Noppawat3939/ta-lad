@@ -19,6 +19,7 @@ import { Suspense, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const pathname = usePathname();
+
   const { data, isFetching } = useQuery({
     queryFn: productService.getSellerProductList,
     queryKey: ["seller-product"],
@@ -70,6 +71,8 @@ export default function ProductsPage() {
     [data]
   );
 
+  const cleanupToLowerCase = (text: string) => text.trim().toLowerCase();
+
   const productsTable = useMemo(() => {
     const cleanedDebounced = debouncedSearch.toLowerCase().trim();
 
@@ -77,15 +80,13 @@ export default function ProductsPage() {
       cleanedDebounced && viewProdcut === "list"
         ? products.filter((product) =>
             [
-              product.brand.toLowerCase().trim().includes(cleanedDebounced),
-              product.product_name
-                .toLowerCase()
-                .trim()
-                .includes(cleanedDebounced),
-              product.product_category
-                .toLowerCase()
-                .trim()
-                .includes(cleanedDebounced),
+              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
+              cleanupToLowerCase(product.product_name).includes(
+                cleanedDebounced
+              ),
+              cleanupToLowerCase(product.product_category).includes(
+                cleanedDebounced
+              ),
             ].some(Boolean)
           )
         : products;
@@ -100,15 +101,13 @@ export default function ProductsPage() {
       cleanedDebounced && viewProdcut === "grid"
         ? data?.filter((product) =>
             [
-              product.brand.toLowerCase().trim().includes(cleanedDebounced),
-              product.product_name
-                .toLowerCase()
-                .trim()
-                .includes(cleanedDebounced),
-              product.category_name
-                .toLowerCase()
-                .trim()
-                .includes(cleanedDebounced),
+              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
+              cleanupToLowerCase(product.product_name).includes(
+                cleanedDebounced
+              ),
+              cleanupToLowerCase(product.category_name).includes(
+                cleanedDebounced
+              ),
             ].some(Boolean)
           )
         : data;

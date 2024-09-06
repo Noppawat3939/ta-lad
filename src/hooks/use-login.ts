@@ -1,17 +1,19 @@
+import { useState } from "react";
 import { authService } from "@/apis";
 import { delay } from "@/lib";
-import { DecodeJwt } from "@/types";
+import type { DecodeJwt } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { setCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
-import { useState } from "react";
+
+const initialState = {
+  onSuccess: () => {},
+  onError: () => {},
+};
 
 export default function useLogin(withSeller = false) {
-  const [callbackLogin, setCallbackLogin] = useState({
-    onSuccess: () => {},
-    onError: () => {},
-  });
+  const [callbackLogin, setCallbackLogin] = useState(initialState);
 
   const loginUserMutation = useMutation({
     mutationFn: withSeller ? authService.loginSeller : authService.loginUser,

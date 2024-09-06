@@ -1,12 +1,10 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { api } from "@/apis";
 import { ContentLayout, MainNavbar } from "@/components";
 import { useSearchKeywordStore } from "@/stores";
 import { Button, Input } from "@nextui-org/react";
-import { Suspense, useEffect, useState } from "react";
-
-const MAX_FILE_SIZE = 10000;
 
 function Home() {
   const { onOpen } = useSearchKeywordStore();

@@ -34,7 +34,7 @@ function NotFound() {
       </ContentLayout>
       <footer className="h-[60px] flex justify-center items-center bg-[#FF731D]">
         <h2 className="text-white text-sm font-medium">
-          {"© 2024 Judpi.co All rights reserved."}
+          {`© ${new Date().getFullYear()} Judpi.co All rights reserved.`}
         </h2>
       </footer>
     </MainLayout>
