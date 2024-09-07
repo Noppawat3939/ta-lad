@@ -1,60 +1,79 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { api } from "@/apis";
-import { ContentLayout, MainNavbar } from "@/components";
+import { Suspense } from "react";
+import {
+  ContentLayout,
+  MainNavbar,
+  ProductCategoryCardGroup as CategoriesCards,
+  ProductCardGroup,
+  MainFooter,
+} from "@/components";
 import { useSearchKeywordStore } from "@/stores";
-import { Button, Input } from "@nextui-org/react";
+import { useShortcutKey } from "@/hooks";
+import { useQueries } from "@tanstack/react-query";
+import { productService } from "@/apis";
+import { CategoryResponse, GetProductsList } from "@/apis/internal/products";
+import { Link } from "@nextui-org/react";
+import { ChevronRight } from "lucide-react";
 
 function Home() {
-  const { onOpen } = useSearchKeywordStore();
+  const data = useQueries({
+    queries: [
+      {
+        queryKey: ["product-list"],
+        queryFn: () => productService.getProductList({ limit: 50, page: 1 }),
+        select: (res: GetProductsList) => res.data?.data,
+      },
+      {
+        queryKey: ["category"],
+        queryFn: productService.getCategoryList,
+        select: ({ data }: CategoryResponse) => data?.data,
+      },
+    ],
+  });
+  const products = data[0] || [];
 
-  const [fileImage, setFileImage] = useState<File | undefined>(undefined);
+  const categories = data[1] || [];
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if ([e.metaKey, e.ctrlKey].some(Boolean) && e.key === "k") {
-        onOpen();
-      }
-    };
+  const { open, onClose, onOpen } = useSearchKeywordStore();
 
-    document.addEventListener("keydown", handleKeyPress);
+  useShortcutKey({ callback: () => (open ? onClose() : onOpen()) });
 
-    return () => document.removeEventListener("keydown", handleKeyPress);
-  }, []);
-
-  const upload = async () => {
-    if (!fileImage) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("image", fileImage);
-      const res = await api.post("/upload", formData);
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
+  const handleAddToCart = (sku: string) => {
+    let carts: { id: number; sku: string }[] = [];
+    carts = [...carts, { id: carts.length + 1, sku }];
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
+    <main className="flex flex-col items-center bg-slate-50 min-h-screen">
       <MainNavbar />
-      <section className="border-4 w-full border-red-500 h-[540px]">
-        categories
-      </section>
-      <ContentLayout>
-        HomePage
-        <Input
-          type="file"
-          accept="image/jpeg,image/png"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-
-            setFileImage(file);
+      <section className="py-4 w-full z-0">
+        <CategoriesCards
+          data={categories.data}
+          isLoading={categories.isLoading}
+          classNames={{
+            container:
+              "max-w-[1240px] mx-auto px-2 max-lg:max-w-[768px] max-md:px-4",
           }}
         />
-        <Button onClick={upload}>upload</Button>
+      </section>
+      <ContentLayout>
+        <section className="py-4 flex flex-col items-stretch">
+          <div className="flex justify-between items-center py-3">
+            <h3 className="font-medium">{"สินค้าสำหรับคุณ"}</h3>
+            <Link href="/" className="text-sm flex items-center">
+              {"ดูเพิ่มเติม"}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
+          <ProductCardGroup
+            data={products.data}
+            isLoading={products.isLoading}
+            onClickToCart={handleAddToCart}
+          />
+        </section>
       </ContentLayout>
+      <MainFooter />
     </main>
   );
 }

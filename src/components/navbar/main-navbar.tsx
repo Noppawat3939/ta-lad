@@ -1,13 +1,18 @@
 "use client";
 
-import { Input, Kbd } from "@nextui-org/react";
-import { Search } from "lucide-react";
+import { Button, Input, Kbd } from "@nextui-org/react";
+import { Search, ShoppingCart } from "lucide-react";
 import { Fragment } from "react";
 import { SearchKeywordModal } from "..";
 import { useSearchKeywordStore } from "@/stores";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-export default function MainNavbar() {
+type MainNavbarProps = {
+  hideCardBtn?: boolean;
+};
+
+export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
   const { onOpen } = useSearchKeywordStore();
   const search = useSearchParams();
 
@@ -15,7 +20,7 @@ export default function MainNavbar() {
 
   return (
     <Fragment>
-      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:h-[64px]">
+      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:h-[64px] z-10">
         <div
           role="nav-wrapper"
           className="flex-1 h-full flex justify-center space-x-4 items-center"
@@ -42,6 +47,18 @@ export default function MainNavbar() {
               </Kbd>
             }
           />
+          {!hideCardBtn && (
+            <Button
+              as={Link}
+              href="/cart"
+              aria-label="cart-link"
+              color="primary"
+              isIconOnly
+              className="max-md:absolute max-md:right-4"
+            >
+              <ShoppingCart className="w-5 h-5" />
+            </Button>
+          )}
         </div>
       </nav>
       <SearchKeywordModal />
