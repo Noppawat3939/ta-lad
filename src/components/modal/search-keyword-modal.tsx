@@ -53,6 +53,10 @@ export default function SearchKeywordModal() {
                   if (e.key === "Enter") {
                     onSearch();
                   }
+                  if (e.key === "Escape") {
+                    searchKeyword && setSearchKeyword("");
+                    onClose();
+                  }
                 }}
                 className="mx-auto w-full max-w-[1024px] max-xl:max-w-[768px] max-lg:max-w-[520px] max-md:hidden"
                 classNames={{

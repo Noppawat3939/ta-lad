@@ -8,3 +8,4 @@ export * from "./table";
 export * from "./card";
 export * from "./image";
 export * from "./not-found";
+export * from "./footer";

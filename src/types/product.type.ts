@@ -22,7 +22,7 @@ export interface InsertProduct {
 export interface Product {
   id: number;
   product_name: string;
-  description?: any;
+  description?: string;
   category_name: string;
   brand: string;
   price: number;
@@ -30,9 +30,10 @@ export interface Product {
   sold_amount: number;
   discount_percent: number;
   discount_price: number;
-  discount_start_date?: any;
-  discount_end_date?: any;
+  discount_start_date?: string;
+  discount_end_date?: string;
   created_at: string;
   updated_at: string;
   image: string[];
+  sku: string;
 }
