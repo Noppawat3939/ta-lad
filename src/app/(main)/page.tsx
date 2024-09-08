@@ -3,20 +3,28 @@
 import { Suspense } from "react";
 import {
   ContentLayout,
-  MainNavbar,
   ProductCategoryCardGroup as CategoriesCards,
   ProductCardGroup,
   MainFooter,
 } from "@/components";
-import { useSearchKeywordStore } from "@/stores";
+import { useSearchKeywordStore, useUserStore } from "@/stores";
 import { useShortcutKey } from "@/hooks";
 import { useQueries } from "@tanstack/react-query";
-import { productService } from "@/apis";
+import { productService, userService } from "@/apis";
 import { CategoryResponse, GetProductsList } from "@/apis/internal/products";
 import { Link } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
+import { hasCookie } from "cookies-next";
+import type { GetUserResponse } from "@/apis/internal/user";
+import dynamic from "next/dynamic";
+
+const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
+  ssr: false,
+});
 
 function Home() {
+  const setUser = useUserStore((s) => s.setUser);
+
   const data = useQueries({
     queries: [
       {
@@ -29,8 +37,19 @@ function Home() {
         queryFn: productService.getCategoryList,
         select: ({ data }: CategoryResponse) => data?.data,
       },
+      {
+        queryKey: ["user"],
+        queryFn: userService.getUser,
+        enabled: hasCookie("session") && hasCookie("rdtk"),
+        select: (res: GetUserResponse) => {
+          if (res.data?.data) {
+            setUser(res.data?.data);
+          }
+        },
+      },
     ],
   });
+
   const products = data[0] || [];
 
   const categories = data[1] || [];

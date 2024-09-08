@@ -51,7 +51,11 @@ export default function LoginForm({ withRole }: LoginFormProps) {
       onError: () => {
         console.error("error");
       },
-      onSuccess: () => router.push("/"),
+      onSuccess: () => {
+        // router.push("/business/products")
+        typeof window !== "undefined" &&
+          window.location.replace("/business/products");
+      },
     });
 
     onLogin(data);

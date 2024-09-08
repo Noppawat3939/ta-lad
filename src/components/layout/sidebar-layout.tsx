@@ -11,9 +11,10 @@ import {
   cn,
   User as NextUiUser,
 } from "@nextui-org/react";
-import { ChevronDown, LogOut, LucideProps, User } from "lucide-react";
+import { ChevronDown, LogOut, LucideProps, Store, User } from "lucide-react";
 import type { User as UserType } from "@/types";
 import { useUserStore } from "@/stores";
+import { useLogout } from "@/hooks";
 
 type SidebarLayoutProps = Readonly<PropsWithChildren> & {
   activeKey?: string;
@@ -37,6 +38,7 @@ export default function SidebarLayout({
   activeSubMenuKey,
 }: SidebarLayoutProps) {
   const user = useUserStore((s) => s.user);
+  const handleLogout = useLogout();
 
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
@@ -55,7 +57,9 @@ export default function SidebarLayout({
           >
             <ProfileDropdown
               onSelect={(currentKey) => {
-                console.log(currentKey);
+                if (currentKey === "logout") {
+                  handleLogout();
+                }
               }}
               user={user}
             />
@@ -106,14 +110,14 @@ function ProfileDropdown({
         color="primary"
         onSelectionChange={(e) => onSelect(String(e.currentKey))}
       >
-        <DropdownItem key="profile" startContent={<User className="w-4 h-4" />}>
-          {"Profile"}
+        <DropdownItem key="store" startContent={<Store className="w-4 h-4" />}>
+          {"รายละเอียดร้านค้า"}
         </DropdownItem>
         <DropdownItem
           key="logout"
           startContent={<LogOut className="w-4 h-4" />}
         >
-          {"Logut"}
+          {"ออกจากระบบ"}
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

@@ -4,12 +4,13 @@ import { productService } from "@/apis";
 import { CustomTable, ProductCard, SidebarLayout } from "@/components";
 import { useDebounce } from "@/hooks";
 import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
-import { Button, Input, Tab, Tabs } from "@nextui-org/react";
-import { useQuery } from "@tanstack/react-query";
+import { Button, Chip, Input, Tab, Tabs } from "@nextui-org/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlignJustify,
   FolderOpen,
   LayoutGrid,
+  PackagePlus,
   Plus,
   SquarePen,
 } from "lucide-react";
@@ -20,16 +21,30 @@ import { Suspense, useMemo, useState } from "react";
 export default function ProductsPage() {
   const pathname = usePathname();
 
-  const { data, isFetching } = useQuery({
+  const {
+    data,
+    isFetching,
+    refetch: refetchProducts,
+  } = useQuery({
     queryFn: productService.getSellerProductList,
     queryKey: ["seller-product"],
     select: ({ data }) => data?.data || [],
+  });
+
+  const updateSkuMutation = useMutation({
+    mutationFn: productService.updateSkuProduct,
+    onSuccess: () => refetchProducts(),
   });
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
   const [search, setSearch] = useState("");
 
   const debouncedSearch = useDebounce(search, 500);
+
+  const shouldShowSkuUpdate = useMemo(
+    () => data?.some((item) => !item.sku),
+    [data]
+  );
 
   const products = useMemo(
     () =>
@@ -42,6 +57,13 @@ export default function ProductsPage() {
             product_category: item.category_name,
             price: priceFormatter(item.price),
             stock: item.stock_amount,
+            sku: item.sku ? (
+              <Chip variant={"dot"} color={"primary"} size="sm">
+                {item.sku}
+              </Chip>
+            ) : (
+              "-"
+            ),
             created_at: dateFormatter(item.created_at, "YYYY-MM-DD"),
             action: (
               <div className="flex space-x-1">
@@ -130,10 +152,11 @@ export default function ProductsPage() {
           order: 3,
           width: 150,
         },
-        price: { children: "Price", order: 4, width: 120 },
-        stock: { children: "Stock", order: 5, width: 120 },
-        created_at: { children: "Created date", order: 6, width: 150 },
-        action: { children: "Action", order: 7, width: 100, align: "center" },
+        price: { children: "Price", order: 4, width: 90 },
+        stock: { children: "Stock", order: 5, width: 90 },
+        sku: { children: "Sku", order: 6, width: 120 },
+        created_at: { children: "Created date", order: 7, width: 150 },
+        action: { children: "Action", order: 8, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}
     />
@@ -182,15 +205,27 @@ export default function ProductsPage() {
               <Tab title={<AlignJustify className="w-4 h-4" />} key="list" />
               <Tab title={<LayoutGrid className="w-4 h-4" />} key="grid" />
             </Tabs>
-            <Button
-              as={Link}
-              href={`${pathname}/insert`}
-              startContent={<Plus className="w-4 h-4" />}
-              color="primary"
-              isLoading={isFetching}
-            >
-              {"เพิ่มสินค้าใหม่"}
-            </Button>
+            <div className="flex space-x-1">
+              <Button
+                as={Link}
+                href={`${pathname}/insert`}
+                startContent={<Plus className="w-4 h-4" />}
+                color="primary"
+                isLoading={isFetching}
+              >
+                {"เพิ่มสินค้าใหม่"}
+              </Button>
+
+              {shouldShowSkuUpdate && (
+                <Button
+                  isLoading={updateSkuMutation.isPending}
+                  onClick={() => updateSkuMutation.mutate()}
+                >
+                  <PackagePlus className="w-4 h-4" />
+                  {"อัพเดท SKU"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         <section className="border-2 border-slate-50 p-3 rounded-lg">
