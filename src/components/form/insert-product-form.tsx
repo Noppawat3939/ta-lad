@@ -17,6 +17,7 @@ import { commonService, productService } from "@/apis";
 import type { InsertProduct } from "@/types";
 import { numberOnly } from "@/lib";
 import { useModalStore } from "@/stores";
+import { useRouter } from "next/navigation";
 
 interface ICustomCard {
   title: string;
@@ -40,6 +41,8 @@ const intialValues: InsertProduct = {
 };
 
 export default function InsertProductForm() {
+  const router = useRouter();
+
   const imgUrlRef = useRef<string[]>([]);
 
   const [values, setValues] = useState<InsertProduct>(intialValues);
@@ -57,7 +60,11 @@ export default function InsertProductForm() {
     mutationFn: productService.insertProductItem,
     onSuccess: (res) => {
       if (res.success) {
-        setModalState({ isOpen: true, title: "Inserted Product" });
+        setModalState({
+          isOpen: true,
+          title: "สร้างสินค้าใหม่เรียบร้อย",
+          onOk: () => router.push("/business/products"),
+        });
         imgUrlRef.current = [];
         resetValues();
       }
@@ -186,7 +193,7 @@ export default function InsertProductForm() {
           <div className="flex flex-col space-y-3">
             <Input
               isRequired
-              label={"ราคาสินค้า (Price)"}
+              label={"ราคาสินค้า"}
               name="price"
               value={values.price.toString()}
               onChange={({ target: { value } }) =>
@@ -195,11 +202,11 @@ export default function InsertProductForm() {
             />
             <Input
               className="flex-[.5]"
-              label={"เปอร์เซ็นต์ส่วนลด (Discount Percentage) %"}
+              label={"เปอร์เซ็นต์ส่วนลด"}
               value={values.discount_percent?.toString()}
               name="discount_percent"
               onChange={({ target: { value } }) =>
-                handleUpdateValue("discount_percent", value)
+                handleUpdateValue("discount_percent", +value)
               }
             />
             <div className="flex space-x-3">
@@ -207,6 +214,9 @@ export default function InsertProductForm() {
                 className="flex-[.5]"
                 label={"วันที่เริ่มลด (Start date discount)"}
                 name="discount_start_date"
+                onChange={(value) => {
+                  console.log(value);
+                }}
               />
               <DatePicker
                 className="flex-[.5]"
@@ -258,7 +268,7 @@ function CustomCard({ title, children, className, description }: ICustomCard) {
   return (
     <Card shadow="none" className={cn("border border-slate-100", className)}>
       <CardHeader className="flex flex-col items-start">
-        <h2 className="text-lg text-slate-800 font-medium">{title}</h2>
+        <h2 className="text-md text-slate-800 font-medium">{title}</h2>
         {description && (
           <p className="text-gray-400 mt-1 font-normal text-xs">
             {description}

@@ -55,6 +55,7 @@ function ProductInsert() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isInsert = params.action === "insert";
   const isView = params.action === "view";
   const isEdit = params.action === "edit";
 
@@ -151,7 +152,7 @@ function ProductInsert() {
       children: [
         {
           key: isView ? "view" : isEdit ? "edit" : "insert",
-          label: isView ? "View" : isEdit ? "Edit" : "Insert",
+          label: isView ? "View" : isEdit ? "Edit" : "เพิ่มสินค้าใหม่",
         },
       ],
     };
@@ -278,7 +279,11 @@ function ProductInsert() {
     >
       <section className="px-3 mb-2">
         <h1 className="text-2xl text-slate-900 font-semibold">
-          {"Insert Product"}
+          {isInsert
+            ? "เพิ่มสินค้าใหม่"
+            : isEdit
+            ? "แก้ไขรายละเอียดสินค้า"
+            : "รายละเอียดสินค้า"}
         </h1>
       </section>
       <Tabs

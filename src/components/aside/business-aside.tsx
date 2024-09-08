@@ -37,11 +37,11 @@ export default function BussinessAside({
   const defaultMenu = [
     {
       key: "products",
-      label: "Products",
+      label: "สินค้าของคุณ",
       icon: <Tag />,
       onClick: () => goTo("/business/products"),
     },
-    { key: "orders", label: "Orders", icon: <ShoppingCart /> },
+    { key: "orders", label: "คำสั่งซื้อของคุณ", icon: <ShoppingCart /> },
   ] as (Menu & { children?: Menu[] })[];
 
   const menus = useMemo(() => {
@@ -61,7 +61,7 @@ export default function BussinessAside({
       <section className="flex items-center px-4 h-[100px]">
         <div className="flex items-center space-x-2">
           <img
-            className="w-[72px] object-cover"
+            className="w-[48px] object-cover"
             src="/images/logo-primary.png"
           />
           <h1 className="text-4xl text-slate-900 font-semibold">{"JUDPI"}</h1>
@@ -74,7 +74,7 @@ export default function BussinessAside({
               variant="light"
               onClick={menu.onClick}
               className={cn(
-                "text-start w-full",
+                "text-start w-full font-[300]",
                 activeKey && activeKey === menu.key
                   ? "text-[#FF731D] font-medium"
                   : undefined

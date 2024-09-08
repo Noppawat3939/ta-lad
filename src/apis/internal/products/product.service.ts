@@ -34,3 +34,8 @@ export const getProductList = async (params?: {
   });
   return data;
 };
+
+export const updateSkuProduct = async () => {
+  const { data } = await api.post("/product/item/sku/update");
+  return data;
+};
