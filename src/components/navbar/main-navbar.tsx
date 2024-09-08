@@ -2,7 +2,7 @@
 
 import { Button, Input, Kbd } from "@nextui-org/react";
 import { Search, ShoppingCart } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { SearchKeywordModal } from "..";
 import { useSearchKeywordStore } from "@/stores";
 import { useSearchParams } from "next/navigation";
@@ -18,12 +18,31 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
 
   const keywordSearch = search.get("k");
 
+  const topNavLinks = useMemo(
+    () => [
+      { key: "login", href: "/login/end-user", label: "ล็อคอิน" },
+      { key: "login", href: "/registration/end-user", label: "สมัครสมาชิก" },
+    ],
+    []
+  );
+
   return (
     <Fragment>
-      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:h-[64px] z-10">
+      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-10">
+        <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
+          {topNavLinks.map((itemLink) => (
+            <Link
+              key={`top-link-${itemLink.key}`}
+              href={itemLink.href as string}
+              className="hover:text-foreground-500"
+            >
+              {itemLink.label}
+            </Link>
+          ))}
+        </div>
         <div
-          role="nav-wrapper"
-          className="flex-1 h-full flex justify-center space-x-4 items-center"
+          aria-label="nav-wrapper"
+          className="flex-1 py-1 h-full flex justify-center space-x-4 items-center"
         >
           <img
             src="/images/logo-second.png"
