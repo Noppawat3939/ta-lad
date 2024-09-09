@@ -10,12 +10,20 @@ import {
   Textarea,
   cn,
 } from "@nextui-org/react";
-import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  PropsWithChildren,
+  Fragment,
+} from "react";
 import { ImageUpload, SelectOption } from ".";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { commonService, productService } from "@/apis";
 import type { InsertProduct } from "@/types";
-import { numberOnly } from "@/lib";
+import { isEmpty, numberOnly } from "@/lib";
 import { useModalStore } from "@/stores";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +34,10 @@ interface ICustomCard {
   className?: string;
 }
 
+type InsertProductFormProps = {
+  mode: "insert" | "edit";
+};
+
 const intialValues: InsertProduct = {
   product_name: "",
   brand: "",
@@ -33,14 +45,14 @@ const intialValues: InsertProduct = {
   category_name: "",
   price: 0,
   stock_amount: 0,
-  sold_amount: undefined,
+  sold_amount: 0,
   discount_percent: undefined,
   discount_price: undefined,
   discount_start_date: undefined,
   discount_end_date: undefined,
 };
 
-export default function InsertProductForm() {
+export default function InsertProductForm({ mode }: InsertProductFormProps) {
   const router = useRouter();
 
   const imgUrlRef = useRef<string[]>([]);
@@ -126,10 +138,7 @@ export default function InsertProductForm() {
   return (
     <div>
       <div className="grid grid-cols-2 gap-4">
-        <CustomCard
-          title={"ข้อมูลทั่วไป (General Information)"}
-          className="flex-1"
-        >
+        <CustomCard title={"ข้อมูลทั่วไป"} className="flex-1">
           <div className="flex space-y-3 flex-col">
             <Input
               isRequired
@@ -161,7 +170,7 @@ export default function InsertProductForm() {
         </CustomCard>
 
         <div className="flex flex-col space-y-3">
-          <CustomCard title={"หมวดหมู่ (Product Category)"}>
+          <CustomCard title={"หมวดหมู่"}>
             <SelectOption
               isRequired
               label={"หมวดหมู่สินค้า"}
@@ -174,22 +183,19 @@ export default function InsertProductForm() {
               }
             />
           </CustomCard>
-          <CustomCard title={"คลังสินค้า (Inventory)"}>
+          <CustomCard title={"คลังสินค้า"}>
             <Input
-              label={"จำนวนคลัง (Stock amount)"}
+              label={"จำนวนคลัง"}
               name="stock_amount"
               value={values.sold_amount?.toString()}
               onChange={({ target: { value } }) =>
-                handleUpdateValue("sold_amount", +numberOnly(value))
+                handleUpdateValue("stock_amount", +numberOnly(value))
               }
             />
           </CustomCard>
         </div>
 
-        <CustomCard
-          title={"ราคาและส่วนลด (Price and Discount)"}
-          className="flex-1"
-        >
+        <CustomCard title={"ราคาและส่วนลด"} className="flex-1">
           <div className="flex flex-col space-y-3">
             <Input
               isRequired
@@ -200,35 +206,39 @@ export default function InsertProductForm() {
                 handleUpdateValue("price", +value)
               }
             />
-            <Input
-              className="flex-[.5]"
-              label={"เปอร์เซ็นต์ส่วนลด"}
-              value={values.discount_percent?.toString()}
-              name="discount_percent"
-              onChange={({ target: { value } }) =>
-                handleUpdateValue("discount_percent", +value)
-              }
-            />
-            <div className="flex space-x-3">
-              <DatePicker
-                className="flex-[.5]"
-                label={"วันที่เริ่มลด (Start date discount)"}
-                name="discount_start_date"
-                onChange={(value) => {
-                  console.log(value);
-                }}
-              />
-              <DatePicker
-                className="flex-[.5]"
-                label={"วันที่ลดราคาสุดท้าย (End date discount)"}
-                name="discount_end_date"
-              />
-            </div>
+            <Show whenTruely={mode === "edit"}>
+              <Fragment>
+                <Input
+                  className="flex-[.5]"
+                  label={"เปอร์เซ็นต์ส่วนลด"}
+                  value={values.discount_percent?.toString()}
+                  name="discount_percent"
+                  onChange={({ target: { value } }) =>
+                    handleUpdateValue("discount_percent", +value)
+                  }
+                />
+                <div className="flex space-x-3">
+                  <DatePicker
+                    className="flex-[.5]"
+                    label={"วันที่เริ่มลด (Start date discount)"}
+                    name="discount_start_date"
+                    onChange={(value) => {
+                      console.log(value);
+                    }}
+                  />
+                  <DatePicker
+                    className="flex-[.5]"
+                    label={"วันที่ลดราคาสุดท้าย (End date discount)"}
+                    name="discount_end_date"
+                  />
+                </div>
+              </Fragment>
+            </Show>
           </div>
         </CustomCard>
 
         <CustomCard
-          title={"รูปภาพสินค้า (Product Image)"}
+          title={"รูปภาพสินค้า"}
           description={"อัพโหลดรูปมากที่สุดจำนวน 2 รูปภาพ"}
         >
           <ImageUpload
@@ -243,6 +253,7 @@ export default function InsertProductForm() {
         <Button
           role="insert"
           onClick={handleCreateProduct}
+          isDisabled={isEmpty(productImages)}
           isLoading={
             isFetching || uploadMutation.isPending || insertProduct.isPending
           }
@@ -278,4 +289,13 @@ function CustomCard({ title, children, className, description }: ICustomCard) {
       <CardBody>{children}</CardBody>
     </Card>
   );
+}
+
+function Show({
+  children,
+  whenTruely = false,
+}: Readonly<PropsWithChildren & { whenTruely?: boolean }>) {
+  if (!whenTruely) return;
+
+  return <Fragment>{children}</Fragment>;
 }

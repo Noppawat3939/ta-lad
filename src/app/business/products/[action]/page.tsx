@@ -255,7 +255,11 @@ function ProductInsert() {
       key: "form",
       icon: FileInput,
       label: "Insert Form",
-      children: <InsertProductForm />,
+      children: (
+        <InsertProductForm
+          mode={params.action === "insert" ? "insert" : "edit"}
+        />
+      ),
     },
     {
       key: "csv",

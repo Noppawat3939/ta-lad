@@ -77,7 +77,7 @@ export default function ProductCardGroup({
                       <small className="text-xs">{`-${item.discount_percent}%`}</small>
                     </span>
                   )}
-                  {isNewProduct && !isLoading && (
+                  {isNewProduct && item.product_name && (
                     <span className="absolute top-2 left-2 text-xs rounded-sm px-1 text-white bg-sky-400 z-[1]">
                       {"สินค้าใหม่"}
                     </span>
@@ -137,12 +137,17 @@ export default function ProductCardGroup({
                       <Button
                         color={isSold ? "default" : "primary"}
                         isDisabled={isSold}
+                        isLoading={!item.product_name}
                         onClick={(e) => {
                           e.stopPropagation();
                           onClickToCart?.(item.sku);
                         }}
                       >
-                        {isSold ? "สินค้าหมด" : "หยิบใส่ตระกร้า"}
+                        {!item.product_name
+                          ? "กำลังโหลดสินค้า"
+                          : isSold
+                          ? "สินค้าหมด"
+                          : "หยิบใส่ตระกร้า"}
                       </Button>
                     </Fragment>
                   )}

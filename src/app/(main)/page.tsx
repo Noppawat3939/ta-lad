@@ -29,7 +29,8 @@ function Home() {
     queries: [
       {
         queryKey: ["product-list"],
-        queryFn: () => productService.getProductList({ limit: 50, page: 1 }),
+        queryFn: () =>
+          productService.getProductList({ page_size: 50, page: 1 }),
         select: (res: GetProductsList) => res.data?.data,
       },
       {
