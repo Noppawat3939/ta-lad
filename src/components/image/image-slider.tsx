@@ -6,9 +6,10 @@ import { useCallback, useMemo, useState } from "react";
 
 type ImageSliderProps = {
   images: string[];
+  height?: number;
 };
 
-export default function ImageSlider({ images }: ImageSliderProps) {
+export default function ImageSlider({ images, height }: ImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleDecreaseIndex = useCallback(
@@ -26,8 +27,8 @@ export default function ImageSlider({ images }: ImageSliderProps) {
   return (
     <div>
       <Image
-        height={300}
-        className="object-cover w-full z-0"
+        height={height || 240}
+        className="object-cover w-full z-[1]"
         src={images[currentIndex]}
         alt="image-slider"
       />

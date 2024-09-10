@@ -1,4 +1,4 @@
-import { Fragment, Suspense, useCallback } from "react";
+import { Fragment, Suspense, useCallback, useTransition } from "react";
 import { priceFormatter } from "@/lib";
 import type { Product } from "@/types";
 import {
@@ -17,6 +17,7 @@ type ProductCardGroupProps = {
   data?: Product[];
   isLoading?: boolean;
   onClickToCart?: (sku: string) => void;
+  onClickProduct?: (product?: Product) => void;
   classNames?: {
     container?: string;
   };
@@ -27,7 +28,10 @@ export default function ProductCardGroup({
   isLoading = false,
   onClickToCart,
   classNames,
+  onClickProduct,
 }: ProductCardGroupProps) {
+  const [pending, startTransition] = useTransition();
+
   const products =
     !data?.length || isLoading
       ? (Array.from({ length: 100 }).fill({
@@ -68,16 +72,19 @@ export default function ProductCardGroup({
                 key={i}
                 isHoverable
                 shadow="none"
-                className="z-0 rounded-md"
+                className="z-[1] rounded-md"
               >
-                <CardBody className="relative">
+                <CardBody
+                  className="relative"
+                  onClick={() => startTransition(() => onClickProduct?.(item))}
+                >
                   {showDiscount && !isLoading && (
                     <span className="absolute top-2 right-2 flex px-1 z-[1] rounded-sm items-center space-x-1 bg-[#ff741ddb] text-white">
                       <Tag className="w-3 h-3" />
                       <small className="text-xs">{`-${item.discount_percent}%`}</small>
                     </span>
                   )}
-                  {isNewProduct && !isLoading && (
+                  {isNewProduct && item.product_name && (
                     <span className="absolute top-2 left-2 text-xs rounded-sm px-1 text-white bg-sky-400 z-[1]">
                       {"สินค้าใหม่"}
                     </span>
@@ -102,7 +109,10 @@ export default function ProductCardGroup({
                     </p>
                   )}
                 </CardBody>
-                <CardFooter className="pt-0 flex flex-col items-center">
+                <CardFooter
+                  className="pt-0 flex flex-col items-center"
+                  onClick={() => startTransition(() => onClickProduct?.(item))}
+                >
                   {isLoading ? (
                     <Skeleton className="w-full h-5 rounded-sm" />
                   ) : (
@@ -137,12 +147,17 @@ export default function ProductCardGroup({
                       <Button
                         color={isSold ? "default" : "primary"}
                         isDisabled={isSold}
+                        isLoading={!item.product_name || pending}
                         onClick={(e) => {
                           e.stopPropagation();
                           onClickToCart?.(item.sku);
                         }}
                       >
-                        {isSold ? "สินค้าหมด" : "หยิบใส่ตระกร้า"}
+                        {!item.product_name
+                          ? "กำลังโหลดสินค้า"
+                          : isSold
+                          ? "สินค้าหมด"
+                          : "หยิบใส่ตระกร้า"}
                       </Button>
                     </Fragment>
                   )}

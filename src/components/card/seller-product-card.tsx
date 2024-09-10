@@ -1,11 +1,18 @@
 import { dateFormatter, priceFormatter } from "@/lib";
 import type { Product } from "@/types";
-import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Chip,
+} from "@nextui-org/react";
 import { ImageSlider } from "..";
 
-type ProductCardProps = Product;
+type SellerProductCardProps = Product;
 
-export default function ProductCard({
+export default function SellerProductCard({
   image,
   product_name,
   description,
@@ -14,7 +21,8 @@ export default function ProductCard({
   stock_amount,
   category_name,
   created_at,
-}: ProductCardProps) {
+  sku,
+}: SellerProductCardProps) {
   const infos = [
     {
       key: "description",
@@ -24,7 +32,7 @@ export default function ProductCard({
     },
     { key: "brand", label: "Brand", value: brand },
     { key: "category", label: "Category", value: category_name },
-    { key: "stock", label: "Stock", value: stock_amount || "-" },
+    { key: "stock", label: "Stock", value: `${stock_amount} ชิ้น` || "-" },
     {
       key: "created_at",
       label: "Created date",
@@ -34,8 +42,18 @@ export default function ProductCard({
 
   return (
     <Card radius="md" shadow="none" className="border z-0">
+      <CardHeader className="relative">
+        <Chip
+          variant="dot"
+          size="sm"
+          className="absolute top-2 right-2 z-[1] text-foreground-600 text-[10px]"
+          classNames={{ dot: sku ? "bg-green-500" : "bg-red-500" }}
+        >
+          {sku || "Not update SKU"}
+        </Chip>
+      </CardHeader>
       <CardBody className="flex justify-center place-items-center">
-        <ImageSlider images={image} />
+        <ImageSlider images={image} height={200} />
       </CardBody>
       <CardFooter className="flex space-x-2 justify-between items-start">
         <div className="flex flex-col">
@@ -50,9 +68,9 @@ export default function ProductCard({
             </span>
           ))}
         </div>
-        <Button size="sm" color="primary">
+        <Chip color="primary" size="sm">
           {priceFormatter(price, true)}
-        </Button>
+        </Chip>
       </CardFooter>
     </Card>
   );

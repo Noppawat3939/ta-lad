@@ -1,13 +1,14 @@
 "use client";
 
 import { productService } from "@/apis";
-import { CustomTable, ProductCard, SidebarLayout } from "@/components";
+import { CustomTable, SellerProductCard, SidebarLayout } from "@/components";
 import { useDebounce } from "@/hooks";
 import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
-import { Button, Chip, Input, Tab, Tabs } from "@nextui-org/react";
+import { Button, Chip, Input, Tab, Tabs, cn } from "@nextui-org/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlignJustify,
+  CircleAlert,
   FolderOpen,
   LayoutGrid,
   PackagePlus,
@@ -58,7 +59,12 @@ export default function ProductsPage() {
             price: priceFormatter(item.price),
             stock: item.stock_amount,
             sku: item.sku ? (
-              <Chip variant={"dot"} color={"primary"} size="sm">
+              <Chip
+                variant={"dot"}
+                classNames={{ dot: "bg-green-500" }}
+                color={"primary"}
+                size="sm"
+              >
                 {item.sku}
               </Chip>
             ) : (
@@ -135,7 +141,7 @@ export default function ProductsPage() {
         : data;
 
     return result;
-  }, [data, debouncedSearch, viewProdcut]);
+  }, [data, debouncedSearch, viewProdcut, refetchProducts]);
 
   const renderTable = () => (
     <CustomTable
@@ -154,8 +160,8 @@ export default function ProductsPage() {
         },
         price: { children: "Price", order: 4, width: 90 },
         stock: { children: "Stock", order: 5, width: 90 },
-        sku: { children: "Sku", order: 6, width: 120 },
-        created_at: { children: "Created date", order: 7, width: 150 },
+        sku: { children: "Product SKU", order: 6, width: 120 },
+        created_at: { children: "Created date", order: 7, width: 120 },
         action: { children: "Action", order: 8, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}
@@ -163,9 +169,16 @@ export default function ProductsPage() {
   );
 
   const renderCards = () => (
-    <div className="grid grid-cols-3 gap-4">
+    <div
+      className={cn(
+        "grid gap-4",
+        productsCard && productsCard?.length >= 4
+          ? "grid-cols-4"
+          : "grid-cols-3"
+      )}
+    >
       {productsCard?.map((product) => (
-        <ProductCard key={`product-${product.id}`} {...product} />
+        <SellerProductCard key={`product-${product.id}`} {...product} />
       ))}
     </div>
   );
@@ -176,7 +189,7 @@ export default function ProductsPage() {
       classNames={{ contentLayout: "px-4 py-3" }}
     >
       <section className="bg-white">
-        <div className="flex justify-between items-center py-3">
+        <div className="flex justify-between items-center pt-3 pb-1">
           <h1 className="text-2xl text-slate-900 font-semibold">
             {"สินค้าทั้งหมด"}
           </h1>
@@ -226,6 +239,14 @@ export default function ProductsPage() {
                 </Button>
               )}
             </div>
+          </div>
+        </div>
+        <div className="flex-1 flex justify-end pb-3">
+          <div className="flex items-center space-x-1">
+            <CircleAlert className="w-3 h-3 text-orange-400" />
+            <p className="text-[10px] font-[300] text-foreground-500">
+              {"โปรดอัพเดท SKU เพื่อให้สินค้าของคุณสามารถเข้าถึงลูกค้าได้"}
+            </p>
           </div>
         </div>
         <section className="border-2 border-slate-50 p-3 rounded-lg">

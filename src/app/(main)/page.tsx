@@ -17,19 +17,24 @@ import { ChevronRight } from "lucide-react";
 import { hasCookie } from "cookies-next";
 import type { GetUserResponse } from "@/apis/internal/user";
 import dynamic from "next/dynamic";
+import { Product } from "@/types";
+import { useRouter } from "next/navigation";
 
 const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
   ssr: false,
 });
 
 function Home() {
+  const router = useRouter();
+
   const setUser = useUserStore((s) => s.setUser);
 
   const data = useQueries({
     queries: [
       {
         queryKey: ["product-list"],
-        queryFn: () => productService.getProductList({ limit: 50, page: 1 }),
+        queryFn: () =>
+          productService.getProductList({ page_size: 50, page: 1 }),
         select: (res: GetProductsList) => res.data?.data,
       },
       {
@@ -63,8 +68,16 @@ function Home() {
     carts = [...carts, { id: carts.length + 1, sku }];
   };
 
+  const handleClickProduct = (product?: Product) => {
+    if (product?.category_name && product.sku) {
+      router.push(
+        `/product/${encodeURI(product.category_name)}/${product.sku}`
+      );
+    }
+  };
+
   return (
-    <main className="flex flex-col items-center bg-slate-50 min-h-screen">
+    <section className="flex flex-col items-center bg-slate-50 min-h-screen">
       <MainNavbar />
       <section className="py-4 w-full z-0">
         <CategoriesCards
@@ -89,11 +102,12 @@ function Home() {
             data={products.data}
             isLoading={products.isLoading}
             onClickToCart={handleAddToCart}
+            onClickProduct={handleClickProduct}
           />
         </section>
       </ContentLayout>
       <MainFooter />
-    </main>
+    </section>
   );
 }
 
