@@ -28,7 +28,7 @@ export default function ImageSlider({ images, height }: ImageSliderProps) {
     <div>
       <Image
         height={height || 240}
-        className="object-cover w-full z-0"
+        className="object-cover w-full z-[1]"
         src={images[currentIndex]}
         alt="image-slider"
       />
