@@ -50,6 +50,7 @@ const intialValues: InsertProduct = {
   discount_price: undefined,
   discount_start_date: undefined,
   discount_end_date: undefined,
+  product_image: [],
 };
 
 export default function InsertProductForm({ mode }: InsertProductFormProps) {
@@ -121,6 +122,12 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
   );
 
   const handleCreateProduct = async () => {
+    if (values?.product_image && values.product_image.length >= 1) {
+      insertProduct.mutate({ data: [values] });
+
+      return;
+    }
+
     let formDataList = [];
     for (let index = 0; index < productImages.length; index++) {
       const imageFile = productImages[index];
@@ -187,7 +194,7 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
             <Input
               label={"จำนวนคลัง"}
               name="stock_amount"
-              value={values.sold_amount?.toString()}
+              value={values.stock_amount?.toString()}
               onChange={({ target: { value } }) =>
                 handleUpdateValue("stock_amount", +numberOnly(value))
               }
@@ -243,7 +250,10 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
         >
           <ImageUpload
             max={2}
-            onChange={setProductImages}
+            onFileUpload={setProductImages}
+            onImageUrlChange={(product_image) =>
+              setValues((prev) => ({ ...prev, product_image }))
+            }
             width={400}
             height={400}
           />
@@ -253,7 +263,7 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
         <Button
           role="insert"
           onClick={handleCreateProduct}
-          isDisabled={isEmpty(productImages)}
+          isDisabled={isEmpty(productImages) && isEmpty(values.product_image)}
           isLoading={
             isFetching || uploadMutation.isPending || insertProduct.isPending
           }

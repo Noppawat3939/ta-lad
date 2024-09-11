@@ -26,16 +26,23 @@ export default function SellerProductCard({
   const infos = [
     {
       key: "description",
-      label: "Description",
       value: description,
       hide: !description,
     },
-    { key: "brand", label: "Brand", value: brand },
-    { key: "category", label: "Category", value: category_name },
-    { key: "stock", label: "Stock", value: `${stock_amount} ชิ้น` || "-" },
+    {
+      key: "price",
+      value: (
+        <Chip color="primary" size="sm">
+          {priceFormatter(price, true)}
+        </Chip>
+      ),
+    },
+    { key: "brand", label: "แบรนด์", value: brand },
+    { key: "category", label: "หมวดหมู่", value: category_name },
+    { key: "stock", label: "สต็อก", value: `${stock_amount} ชิ้น` || "-" },
     {
       key: "created_at",
-      label: "Created date",
+      label: "สร้างเมื่อ",
       value: dateFormatter(created_at, "YYYY-MM-DD"),
     },
   ].filter((info) => !info.hide);
@@ -60,17 +67,22 @@ export default function SellerProductCard({
           <h3 className="text-[14px]">{product_name}</h3>
           {infos.map((info) => (
             <span
-              className="flex items-baseline space-x-1 text-xs text-gray-700/60"
+              className="flex items-baseline space-x-1 mb-1 text-xs text-gray-700/60"
               key={`info-${info.key}`}
             >
-              <label className="font-normal">{`${info.label}:`}</label>
-              <p className="font-[300]">{info.value}</p>
+              {info?.label && (
+                <label className="font-normal">{`${info.label}:`}</label>
+              )}
+              {info.key === "price" ? (
+                info.value
+              ) : (
+                <p className="font-[300] text-foreground-500/50">
+                  {info.value}
+                </p>
+              )}
             </span>
           ))}
         </div>
-        <Chip color="primary" size="sm">
-          {priceFormatter(price, true)}
-        </Chip>
       </CardFooter>
     </Card>
   );

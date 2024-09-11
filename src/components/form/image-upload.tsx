@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment, useCallback, useRef, useState } from "react";
-import { delay } from "@/lib";
-import { Button, Image } from "@nextui-org/react";
+import { Fragment, useRef, useState } from "react";
+import { RegexImageUrl, delay, isEmpty } from "@/lib";
+import { Button, Image, Input } from "@nextui-org/react";
 import { Trash2, Upload } from "lucide-react";
 import Compressor from "compressorjs";
 
@@ -11,22 +11,30 @@ type ImageUploadProps = {
   width?: number;
   height?: number;
   quality?: number;
-  onChange: (file: (File | Blob)[]) => void;
+  onFileUpload?: (file: (File | Blob)[]) => void;
+  onImageUrlChange?: (url: string[]) => void;
 };
+
+const UPLOADING_RATE = 200;
 
 export default function ImageUpload({
   max = 4,
-  onChange,
+  onFileUpload,
   width,
   height,
   quality = 0.8,
+  onImageUrlChange,
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<(File | Blob)[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrlList, setImageUrlList] = useState<string[]>([]);
+  const [errorImageUrl, setErrorImageUrl] = useState("");
 
   const handleUpdatePreviewImage = async (file: File) => {
-    const wait = file.size / 200;
+    const wait = file.size / UPLOADING_RATE;
     setUploading(true);
 
     await delay(wait);
@@ -38,24 +46,45 @@ export default function ImageUpload({
       success: (fileRes) => {
         const updateFile = [...fileList, fileRes];
         setFileList(updateFile);
-        onChange(updateFile);
+        onFileUpload?.(updateFile);
       },
       error: (e) => console.error(e),
     });
     setUploading(false);
   };
 
-  const handleRemove = useCallback(
-    (removedIndex: number) => {
-      const removedFile = fileList.filter((_, idx) => idx !== removedIndex);
+  const handleRemove = (removedIndex: number, isUrl = false) => {
+    if (isUrl) {
+      const removedUrl = imageUrlList.filter((_, idx) => idx !== removedIndex);
 
-      setFileList(removedFile);
-      onChange(removedFile);
-    },
-    [onChange]
-  );
+      setImageUrlList(removedUrl);
+      onImageUrlChange?.(removedUrl);
 
-  const isDisabled = fileList.length >= max;
+      return;
+    }
+
+    const removedFile = fileList.filter((_, idx) => idx !== removedIndex);
+
+    setFileList(removedFile);
+    onFileUpload?.(removedFile);
+  };
+
+  const handleSaveUrl = () => {
+    if (!RegexImageUrl.test(imageUrl)) {
+      setErrorImageUrl("ลิงก์รูปภาพไม่ถูกต้อง");
+      return;
+    }
+
+    const updatedUrl = isEmpty(imageUrlList)
+      ? [imageUrl]
+      : [...imageUrlList, imageUrl];
+
+    setImageUrlList(updatedUrl);
+    onImageUrlChange?.(updatedUrl);
+    setImageUrl("");
+  };
+
+  const isDisabled = (fileList.length || imageUrlList.length) >= max;
 
   return (
     <section>
@@ -87,6 +116,28 @@ export default function ImageUpload({
           }}
         />
       </div>
+      <p className="text-xs mb-2 text-foreground-500/80 text-center">
+        {"หรือ"}
+      </p>
+      <div className="flex items-center space-x-2">
+        <Input
+          label={"ลิงก์รูปภาพ"}
+          size="sm"
+          value={imageUrl}
+          onChange={({ target: { value } }) => {
+            if (errorImageUrl) {
+              setErrorImageUrl("");
+            }
+
+            setImageUrl(value.trim());
+          }}
+          isInvalid={!!errorImageUrl}
+          errorMessage={errorImageUrl}
+        />
+        <Button isDisabled={!imageUrl || isDisabled} onClick={handleSaveUrl}>
+          {"บันทึก"}
+        </Button>
+      </div>
       <div className="flex space-x-2 mt-2">
         {fileList.length > 0 &&
           fileList.map((image, i) => (
@@ -105,6 +156,30 @@ export default function ImageUpload({
               </Button>
               <Image
                 src={URL.createObjectURL(image)}
+                width={80}
+                className="object-contain z-0"
+                loading="lazy"
+                alt={`preview-image-${i}`}
+              />
+            </div>
+          ))}
+        {imageUrlList.length > 0 &&
+          imageUrlList.map((image, i) => (
+            <div
+              key={`preview-image-${i}`}
+              className="relative border border-slate-100 rounded p-3"
+            >
+              <Button
+                className="z-[2] absolute rounded-full border-red-200 h-6 top-1 right-1"
+                size="sm"
+                variant="bordered"
+                isIconOnly
+                onClick={() => handleRemove(i, true)}
+              >
+                <Trash2 className="w-3 h-3 text-red-500" />
+              </Button>
+              <Image
+                src={image}
                 width={80}
                 className="object-contain z-0"
                 loading="lazy"

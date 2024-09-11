@@ -16,11 +16,12 @@ import {
   SquarePen,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const {
     data,
@@ -34,7 +35,7 @@ export default function ProductsPage() {
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
-    onSuccess: () => refetchProducts(),
+    onSuccess: () => router.refresh(),
   });
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
@@ -151,17 +152,17 @@ export default function ProductsPage() {
         tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
-        product_name: { children: "Product name", order: 1 },
-        brand: { children: "Brand", order: 2, width: 180 },
+        product_name: { children: "ชื่อสินค้า", order: 1 },
+        brand: { children: "แบรนด์", order: 2, width: 180 },
         product_category: {
-          children: "Category",
+          children: "หมวดหมู่",
           order: 3,
           width: 150,
         },
-        price: { children: "Price", order: 4, width: 90 },
-        stock: { children: "Stock", order: 5, width: 90 },
-        sku: { children: "Product SKU", order: 6, width: 120 },
-        created_at: { children: "Created date", order: 7, width: 120 },
+        price: { children: "ราคา", order: 4, width: 90 },
+        stock: { children: "สต็อก", order: 5, width: 90 },
+        sku: { children: "รหัสสินค้า", order: 6, width: 120 },
+        created_at: { children: "สร้างเมื่อ", order: 7, width: 120 },
         action: { children: "Action", order: 8, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}

@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, Suspense, useCallback, useTransition } from "react";
 import { priceFormatter } from "@/lib";
 import type { Product } from "@/types";
