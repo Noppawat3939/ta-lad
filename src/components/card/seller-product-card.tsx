@@ -20,7 +20,6 @@ export default function SellerProductCard({
   brand,
   stock_amount,
   category_name,
-  created_at,
   sku,
 }: SellerProductCardProps) {
   const infos = [
@@ -40,11 +39,6 @@ export default function SellerProductCard({
     { key: "brand", label: "แบรนด์", value: brand },
     { key: "category", label: "หมวดหมู่", value: category_name },
     { key: "stock", label: "สต็อก", value: `${stock_amount} ชิ้น` || "-" },
-    {
-      key: "created_at",
-      label: "สร้างเมื่อ",
-      value: dateFormatter(created_at, "YYYY-MM-DD"),
-    },
   ].filter((info) => !info.hide);
 
   return (
