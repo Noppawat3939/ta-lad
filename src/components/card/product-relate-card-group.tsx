@@ -4,10 +4,10 @@ import { displayDiscountProduct, priceFormatter } from "@/lib";
 import { Product } from "@/types";
 import { Card, CardBody, Image } from "@nextui-org/react";
 import { ProductCardLoader } from ".";
+import { Tag } from "lucide-react";
 
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
-import { Tag } from "lucide-react";
 
 type ProductRelateCardGroupProps = {
   items?: Product[];

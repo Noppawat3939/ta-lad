@@ -6,7 +6,6 @@ export * from "./animation";
 export * from "./modal";
 export * from "./table";
 export * from "./card";
-export * from "./image";
 export * from "./not-found";
 export * from "./footer";
 export * from "./breadcrumb";
