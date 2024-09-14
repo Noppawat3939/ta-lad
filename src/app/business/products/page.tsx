@@ -35,7 +35,10 @@ export default function ProductsPage() {
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
-    onSuccess: () => router.refresh(),
+    onSuccess: () =>
+      typeof window !== "undefined"
+        ? window.location.reload()
+        : router.refresh(),
   });
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
@@ -172,7 +175,7 @@ export default function ProductsPage() {
   const renderCards = () => (
     <div
       className={cn(
-        "grid gap-4",
+        "grid gap-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1",
         productsCard && productsCard?.length >= 4
           ? "grid-cols-4"
           : "grid-cols-3"

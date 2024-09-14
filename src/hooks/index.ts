@@ -5,3 +5,4 @@ export { default as useGetUser } from "./use-get-user";
 export { default as useMetadata } from "./use-metadata";
 export { default as useShortcutKey } from "./use-shortcut-key";
 export { default as useLogout } from "./use-logout";
+export { default as useCount } from "./use-count";

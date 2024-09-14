@@ -1,16 +1,27 @@
 import type {
   InsertProduct,
+  Pagination,
   Product,
   ProductCategory,
   ServiceResponse as TRes,
+  User,
 } from "@/types";
 import { api } from "..";
 
-export type CategoryResponse = TRes<{ data: ProductCategory[]; total: number }>;
-export type GetSellerProducts = TRes<{ total: number; data: Product[] }>;
-export type GetProductsList = TRes<{ total: number; data: Product[] }>;
-export type GetProductBySKU = TRes<{ data: Product }>;
 type UpdateProductSKU = TRes<null>;
+type ProductsWithTotal = { total: number; data: Product[] };
+
+export type CategoryResponse = TRes<{ data: ProductCategory[]; total: number }>;
+export type GetSellerProducts = TRes<ProductsWithTotal>;
+export type GetProductsList = TRes<ProductsWithTotal>;
+export type GetProductBySKU = TRes<{ data: Product }>;
+export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;
+export type GetSellerProductBySKU = TRes<{
+  data: Pick<
+    User,
+    "id" | "store_name" | "created_at" | "updated_at" | "profile_image"
+  > & { product_list_count: number };
+}>;
 
 export const getCategoryList = async () => {
   const { data } = await api.get<CategoryResponse>("/product/category/list");
@@ -47,5 +58,25 @@ export const getProductBySKU = async (sku: string) => {
   const { data } = await api.get<GetProductBySKU>(`/product/item/${sku}`, {
     timeout: 10000,
   });
+  return data;
+};
+
+export const getProductsRelateBySKU = async (
+  sku: string,
+  pagination: Pagination
+) => {
+  const { data } = await api.get<GetProductsRelateBySKU>(
+    `/product/item/relate/${sku}`,
+    {
+      params: pagination,
+    }
+  );
+  return data;
+};
+
+export const getSellerBySKU = async (sku: string) => {
+  const { data } = await api.get<GetSellerProductBySKU>(
+    `/product/seller-product/${sku}`
+  );
   return data;
 };

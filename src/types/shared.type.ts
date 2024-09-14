@@ -46,3 +46,5 @@ export interface User {
 }
 
 export type Role = "user" | "store" | "admin";
+
+export type Pagination = { page: number; page_size: number };

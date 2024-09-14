@@ -1,7 +1,11 @@
 "use client";
 
-import { Fragment, Suspense, useCallback, useTransition } from "react";
-import { priceFormatter } from "@/lib";
+import { Fragment, Suspense, useTransition } from "react";
+import {
+  displayDiscountProduct,
+  isNewRelaseProduct,
+  priceFormatter,
+} from "@/lib";
 import type { Product } from "@/types";
 import {
   Button,
@@ -12,7 +16,6 @@ import {
   Skeleton,
   cn,
 } from "@nextui-org/react";
-import dayjs from "dayjs";
 import { Tag } from "lucide-react";
 
 type ProductCardGroupProps = {
@@ -32,7 +35,7 @@ export default function ProductCardGroup({
   classNames,
   onClickProduct,
 }: ProductCardGroupProps) {
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const products =
     !data?.length || isLoading
@@ -42,32 +45,19 @@ export default function ProductCardGroup({
         }) as unknown as typeof data)
       : data;
 
-  const displayDiscount = useCallback(
-    (
-      discount_percent: number,
-      discount_start_date?: string,
-      discount_end_date?: string
-    ) =>
-      discount_start_date && discount_end_date && discount_percent > 0
-        ? dayjs().isAfter(discount_start_date) &&
-          dayjs().isBefore(discount_end_date)
-        : false,
-    [dayjs]
-  );
-
   return (
     <Suspense>
       <section className={cn("w-full h-auto", classNames?.container)}>
         <div className="grid grid-cols-5 gap-4 max-xl:grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2">
           {products?.map((item, i) => {
-            const showDiscount = displayDiscount(
+            const showDiscount = displayDiscountProduct(
               item.discount_percent,
               item.discount_start_date,
               item.discount_end_date
             );
             const isSold = item.stock_amount === 0;
             const hasAlredySold = item.sold_amount > 0;
-            const isNewProduct = dayjs().diff(item.created_at, "day") <= 7;
+            const isNewProduct = isNewRelaseProduct(item.created_at);
 
             return (
               <Card
@@ -149,7 +139,7 @@ export default function ProductCardGroup({
                       <Button
                         color={isSold ? "default" : "primary"}
                         isDisabled={isSold}
-                        isLoading={!item.product_name || pending}
+                        isLoading={!item.product_name}
                         onClick={(e) => {
                           e.stopPropagation();
                           onClickToCart?.(item.sku);
