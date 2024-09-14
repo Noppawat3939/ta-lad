@@ -35,7 +35,10 @@ export default function ProductsPage() {
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
-    onSuccess: () => router.refresh(),
+    onSuccess: () =>
+      typeof window !== "undefined"
+        ? window.location.reload()
+        : router.refresh(),
   });
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
