@@ -9,5 +9,5 @@ export default function useMetadata(params: UseMetadata) {
     if (params.title) {
       document.title = params.title;
     }
-  }, []);
+  }, [params.title]);
 }

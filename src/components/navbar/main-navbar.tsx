@@ -52,12 +52,12 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
         label: "ออกจากระบบ",
       },
     ],
-    []
+    [handleLogout]
   );
 
   return (
     <Fragment>
-      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-10">
+      <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-20">
         <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
           {user?.id || hasCookie("rdtk") ? (
             <Popover placement="bottom" showArrow>
@@ -82,7 +82,7 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
               <PopoverContent className="py-2 shadow-sm">
                 <ul className="text-xs flex flex-col space-y-2">
                   {userMenus.map((menu) => (
-                    <li>
+                    <li key={`menu-${menu.key}`}>
                       <Link
                         className="hover:text-foreground-500/80 duration-200 transition-all"
                         href={menu.href || ""}

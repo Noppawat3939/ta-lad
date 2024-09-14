@@ -63,3 +63,17 @@ export const isEmptyArray = <A extends unknown[]>(a: A) => a.length === 0;
 
 export const truncate = (text: string, len = 50) =>
   text.length > len ? text.slice(0, len) + "..." : text;
+
+export const displayDiscountProduct = (
+  discount_percent: number,
+  discount_start_date?: string,
+  discount_end_date?: string
+) => {
+  return discount_start_date && discount_end_date && discount_percent > 0
+    ? dayjs().isAfter(discount_start_date) &&
+        dayjs().isBefore(discount_end_date)
+    : false;
+};
+
+export const isNewRelaseProduct = (created_at: string, compare_day = 7) =>
+  dayjs().diff(created_at) <= compare_day;
