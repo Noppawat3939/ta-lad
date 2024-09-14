@@ -4,6 +4,7 @@ import type {
   Product,
   ProductCategory,
   ServiceResponse as TRes,
+  User,
 } from "@/types";
 import { api } from "..";
 
@@ -15,6 +16,12 @@ export type GetSellerProducts = TRes<ProductsWithTotal>;
 export type GetProductsList = TRes<ProductsWithTotal>;
 export type GetProductBySKU = TRes<{ data: Product }>;
 export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;
+export type GetSellerProductBySKU = TRes<{
+  data: Pick<
+    User,
+    "id" | "store_name" | "created_at" | "updated_at" | "profile_image"
+  > & { product_list_count: number };
+}>;
 
 export const getCategoryList = async () => {
   const { data } = await api.get<CategoryResponse>("/product/category/list");
@@ -63,6 +70,13 @@ export const getProductsRelateBySKU = async (
     {
       params: pagination,
     }
+  );
+  return data;
+};
+
+export const getSellerBySKU = async (sku: string) => {
+  const { data } = await api.get<GetSellerProductBySKU>(
+    `/product/seller-product/${sku}`
   );
   return data;
 };

@@ -24,8 +24,6 @@ export default function ProductRelateCardGroup({
       className="min-h-[300px] w-full"
       itemClass="flex"
       ssr
-      autoPlay
-      autoPlaySpeed={5000}
       draggable={false}
       responsive={{
         desktop: {

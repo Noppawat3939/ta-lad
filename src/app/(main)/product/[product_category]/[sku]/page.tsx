@@ -4,6 +4,7 @@ import { productService } from "@/apis";
 import {
   GetProductBySKU,
   GetProductsRelateBySKU,
+  GetSellerProductBySKU,
 } from "@/apis/internal/products";
 import {
   Breadcrumb,
@@ -13,13 +14,15 @@ import {
   ProductRelateCardGroup,
 } from "@/components";
 import { useCount, useMetadata } from "@/hooks";
-import { priceFormatter } from "@/lib";
+import { dateFormatter, priceFormatter } from "@/lib";
 import {
   Button,
   ButtonProps,
   Card,
   CardBody,
   Image,
+  Spinner,
+  User,
   cn,
 } from "@nextui-org/react";
 import { useQueries } from "@tanstack/react-query";
@@ -56,17 +59,32 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         enabled: !!params.sku,
         select: (res: GetProductsRelateBySKU) => res.data?.data,
       },
+      {
+        queryKey: ["seller-product", params.sku],
+        queryFn: () => productService.getSellerBySKU(params.sku),
+        enabled: !!params.sku,
+        select: (res: GetSellerProductBySKU) => res.data?.data,
+      },
     ],
   });
 
   const product = data[0].data;
   const productsRelate = data[1].data;
+  const sellerProductDetail = data[2].data;
 
   useMetadata({
     title: `${product?.product_name} | JUBPI จัดไป` || "JUBPI จัดไป",
   });
 
-  const isLoading = data[0].isLoading || data[1].isLoading;
+  const isLoading = [
+    data[0].isLoading,
+    data[1].isLoading,
+    data[2].isLoading,
+  ].some(Boolean);
+
+  const isError = [data[0].isError, data[1].isError, data[2].isError].some(
+    Boolean
+  );
 
   return (
     <section className="bg-slate-50 min-h-screen flex flex-col">
@@ -93,89 +111,122 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         <section className="py-4" aria-label="product-detail">
           <Card shadow="none">
             <CardBody>
-              <section className="flex space-x-4">
-                <div className="flex-[.8] flex">
-                  <div className="flex flex-col mr-2 space-y-2">
-                    {product?.image?.map((image, i) => (
-                      <Image
-                        key={`image-${i}`}
-                        alt="product-image"
-                        radius="sm"
-                        className={cn(
-                          "object-contain border",
-                          currentIndexImage === i
-                            ? "border-[#FF731D] shadow-sm"
-                            : "border-slate-50"
-                        )}
-                        loading="lazy"
-                        src={image}
-                        width={64}
-                        onClick={() => setCurrentIndexImage(i)}
-                      />
-                    ))}
-                  </div>
-                  <Image
-                    isLoading={isLoading}
-                    loading="lazy"
-                    height={400}
-                    className="object-contain"
-                    src={product?.image[currentIndexImage]}
-                  />
+              <Show isTruely={isLoading}>
+                <div className="min-h-[320px] flex flex-1 justify-center">
+                  <Spinner />
                 </div>
-                <Show isTruely={product?.id !== undefined}>
-                  <div className="flex-[1.2] px-2 flex flex-col gap-1">
-                    <h3 className="text-2xl">{product?.product_name}</h3>
-                    <p className="font-[300] text-sm text-foreground-500/80">{`รหัสสินค้า ${product?.sku}`}</p>
-                    <h2 className="text-xl font-medium">
-                      {priceFormatter(product?.price, true)}
-                    </h2>
-                    <Show isTruely={product?.stock_amount !== undefined}>
-                      <span className="flex items-baseline space-x-1">
-                        <p className="text-sm">
-                          {product && product?.stock_amount > 0
-                            ? `มีสินค้าอยู่ ${product!.stock_amount} ชิ้น`
-                            : "สินค้าหมด"}
-                        </p>
-                        {product &&
-                          product!.stock_amount < 10 &&
-                          product!.stock_amount > 0 && (
-                            <p className="text-xs text-red-500">
-                              {"สินค้ามีจำนวนจำกัด"}
-                            </p>
+              </Show>
+              <Show isTruely={!isError && !isLoading}>
+                <section className="flex space-x-4 py-2">
+                  <div aria-label="product-images" className="flex-[.9] flex">
+                    <div className="flex flex-col mr-2 space-y-2">
+                      {product?.image?.map((image, i) => (
+                        <Image
+                          key={`image-${i}`}
+                          alt="product-image"
+                          radius="sm"
+                          className={cn(
+                            "object-contain border",
+                            currentIndexImage === i
+                              ? "border-[#FF731D] shadow-sm"
+                              : "border-slate-50"
                           )}
-                      </span>
-                    </Show>
-                    <CounterProduct
-                      count={count}
-                      onDecrease={onDecrease}
-                      onIncrease={onIncrease}
-                      isDisabledMax={
-                        product?.stock_amount
-                          ? count >= product?.stock_amount
-                          : false
-                      }
-                      className="max-w-[100px]"
+                          loading="lazy"
+                          src={image}
+                          width={64}
+                          onClick={() => setCurrentIndexImage(i)}
+                        />
+                      ))}
+                    </div>
+                    <Image
+                      isLoading={isLoading}
+                      loading="lazy"
+                      height={400}
+                      className="object-contain"
+                      src={product?.image[currentIndexImage]}
                     />
-                    <Button color="primary" className="w-[180px] my-2">
-                      <Plus className="w-4 h-4" />
-                      {"หยิบใส่ตระกร้า"}
-                    </Button>
-                    <Show
-                      isTruely={
-                        product?.description !== undefined &&
-                        !!product.description
-                      }
-                    >
-                      <div className="text-sm">
-                        <h5>{"รายละเอียดสินค้า"}</h5>
-                        <p className="text-foreground-500/80 font-[300]">
-                          {product?.description}
-                        </p>
-                      </div>
-                    </Show>
                   </div>
-                </Show>
-              </section>
+                  <Show isTruely={product?.id !== undefined}>
+                    <div className="flex-[1.2] px-2 flex flex-col gap-1">
+                      <h3 className="text-2xl">{product?.product_name}</h3>
+                      <User
+                        className="justify-start w-fit my-1"
+                        name={sellerProductDetail?.store_name || ""}
+                        avatarProps={{
+                          src: sellerProductDetail?.profile_image,
+                        }}
+                        description={
+                          <div>
+                            <p aria-label="product_list_count">
+                              {`จำนวนรายการสินค้าทั้งหมด ${priceFormatter(
+                                sellerProductDetail?.product_list_count
+                              )} ชิ้น`}
+                            </p>
+                            <p>{`เข้าร่วมเมื่อ ${dateFormatter(
+                              sellerProductDetail?.created_at,
+                              "DD/MM/YYYY"
+                            )}`}</p>
+                          </div>
+                        }
+                      />
+                      <h2 className="text-xl font-medium">
+                        {priceFormatter(product?.price, true)}
+                      </h2>
+                      <Show isTruely={product?.stock_amount !== undefined}>
+                        <span className="flex items-baseline space-x-1">
+                          <p className="text-sm">
+                            {product && product?.stock_amount > 0
+                              ? `มีสินค้าอยู่ ${priceFormatter(
+                                  product!.stock_amount
+                                )} ชิ้น`
+                              : "สินค้าหมด"}
+                          </p>
+                          {product &&
+                            product!.stock_amount < 10 &&
+                            product!.stock_amount > 0 && (
+                              <p className="text-xs text-red-500">
+                                {"สินค้ามีจำนวนจำกัด"}
+                              </p>
+                            )}
+                        </span>
+                      </Show>
+                      <CounterProduct
+                        count={count}
+                        onDecrease={onDecrease}
+                        onIncrease={onIncrease}
+                        isDisabledMax={
+                          product?.stock_amount
+                            ? count >= product?.stock_amount
+                            : false
+                        }
+                        className="max-w-[100px]"
+                      />
+                      <Button color="primary" className="w-[180px] my-4">
+                        <Plus className="w-4 h-4" />
+                        {"หยิบใส่ตระกร้า"}
+                      </Button>
+                      <Show
+                        isTruely={
+                          product?.description !== undefined &&
+                          !!product.description
+                        }
+                      >
+                        <div className="text-sm">
+                          <h5>{"รายละเอียดสินค้า"}</h5>
+                          <p className="text-foreground-500/80 font-[300]">
+                            {product?.description}
+                          </p>
+                        </div>
+                      </Show>
+                    </div>
+                  </Show>
+                </section>
+              </Show>
+              <Show isTruely={isError}>
+                <div className="min-h-[320px] flex flex-1 items-center justify-center">
+                  <p>{"ไม่พบสินค้า"}</p>
+                </div>
+              </Show>
             </CardBody>
           </Card>
         </section>
