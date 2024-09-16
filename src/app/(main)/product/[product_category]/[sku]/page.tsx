@@ -68,6 +68,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     title: `${product?.product_name} | JUBPI จัดไป` || "JUBPI จัดไป",
   });
 
+  const goToStore = (sku: string) => router.push(`/store/${sku}`);
+
   const isLoading = [data[0].isLoading, data[1].isLoading].some(Boolean);
 
   const isError = [data[0].isError, data[1].isError].some(Boolean);
@@ -77,6 +79,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
       <MainNavbar />
       <ContentLayout className="py-t pb-20">
         <Breadcrumb
+          props={{ base: { className: "pt-2" } }}
           items={[
             { key: "home", label: "หน้าแรก", href: "/" },
             {
@@ -136,8 +139,9 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                     <div className="flex-[1.2] px-2 flex flex-col gap-1">
                       <h3 className="text-2xl">{product?.product_name}</h3>
                       <User
-                        className="justify-start w-fit my-1"
+                        className="justify-start w-fit my-1 cursor-pointer"
                         name={product?.seller?.store_name || ""}
+                        onClick={() => goToStore(product?.sku || "")}
                         avatarProps={{
                           src: product?.seller?.profile_image,
                         }}

@@ -3,6 +3,7 @@
 import { Fragment, Suspense, useTransition } from "react";
 import {
   displayDiscountProduct,
+  isEmpty,
   isNewRelaseProduct,
   priceFormatter,
 } from "@/lib";
@@ -16,7 +17,7 @@ import {
   Skeleton,
   cn,
 } from "@nextui-org/react";
-import { Tag } from "lucide-react";
+import { Box, Tag } from "lucide-react";
 
 type ProductCardGroupProps = {
   data?: Product[];
@@ -44,6 +45,14 @@ export default function ProductCardGroup({
           image: null,
         }) as unknown as typeof data)
       : data;
+
+  if (!isLoading && isEmpty(data))
+    return (
+      <div className="flex space-x-2 items-center">
+        <Box className="w-4 h-4 text-foreground-500/80" />
+        <p>{"ไม่พบสินค้า"}</p>
+      </div>
+    );
 
   return (
     <Suspense>

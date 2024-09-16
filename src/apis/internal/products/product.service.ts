@@ -13,15 +13,22 @@ type ProductsWithTotal = { total: number; data: Product[] };
 type PickedSeller = Pick<
   User,
   "id" | "store_name" | "created_at" | "updated_at" | "profile_image"
->;
+> & { product_list_count: number; products_soldout_count?: number };
 
 export type CategoryResponse = TRes<{ data: ProductCategory[]; total: number }>;
 export type GetSellerProducts = TRes<ProductsWithTotal>;
 export type GetProductsList = TRes<ProductsWithTotal>;
 export type GetProductBySKU = TRes<{
-  data: Product & { seller: PickedSeller & { product_list_count: number } };
+  data: Product & { seller: PickedSeller };
 }>;
 export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;
+type GetListProductBySKU = TRes<{
+  data: {
+    all_product: Product[];
+    new_arriaval: Product[];
+    seller: PickedSeller;
+  };
+}>;
 
 export const getCategoryList = async () => {
   const { data } = await api.get<CategoryResponse>("/product/category/list");
@@ -68,6 +75,21 @@ export const getProductsRelateBySKU = async (
   const { data } = await api.get<GetProductsRelateBySKU>(
     `/product/item/relate/${sku}`,
     {
+      timeout: 10000,
+      params: pagination,
+    }
+  );
+  return data;
+};
+
+export const getListProductBySKU = async (
+  sku: string,
+  pagination: Pagination
+) => {
+  const { data } = await api.get<GetListProductBySKU>(
+    `/product/seller-product/list/${sku}`,
+    {
+      timeout: 10000,
       params: pagination,
     }
   );
