@@ -4,7 +4,6 @@ import { productService } from "@/apis";
 import {
   GetProductBySKU,
   GetProductsRelateBySKU,
-  GetSellerProductBySKU,
 } from "@/apis/internal/products";
 import {
   Breadcrumb,
@@ -28,7 +27,7 @@ import {
 import { useQueries } from "@tanstack/react-query";
 import { Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Fragment, PropsWithChildren, Suspense, useState } from "react";
+import { Fragment, type PropsWithChildren, Suspense, useState } from "react";
 
 type ProductDetailPageProps = {
   params: { product_category: string; sku: string };
@@ -59,32 +58,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         enabled: !!params.sku,
         select: (res: GetProductsRelateBySKU) => res.data?.data,
       },
-      {
-        queryKey: ["seller-product", params.sku],
-        queryFn: () => productService.getSellerBySKU(params.sku),
-        enabled: !!params.sku,
-        select: (res: GetSellerProductBySKU) => res.data?.data,
-      },
     ],
   });
 
   const product = data[0].data;
   const productsRelate = data[1].data;
-  const sellerProductDetail = data[2].data;
 
   useMetadata({
     title: `${product?.product_name} | JUBPI จัดไป` || "JUBPI จัดไป",
   });
 
-  const isLoading = [
-    data[0].isLoading,
-    data[1].isLoading,
-    data[2].isLoading,
-  ].some(Boolean);
+  const isLoading = [data[0].isLoading, data[1].isLoading].some(Boolean);
 
-  const isError = [data[0].isError, data[1].isError, data[2].isError].some(
-    Boolean
-  );
+  const isError = [data[0].isError, data[1].isError].some(Boolean);
 
   return (
     <section className="bg-slate-50 min-h-screen flex flex-col">
@@ -151,19 +137,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                       <h3 className="text-2xl">{product?.product_name}</h3>
                       <User
                         className="justify-start w-fit my-1"
-                        name={sellerProductDetail?.store_name || ""}
+                        name={product?.seller?.store_name || ""}
                         avatarProps={{
-                          src: sellerProductDetail?.profile_image,
+                          src: product?.seller?.profile_image,
                         }}
                         description={
                           <div>
                             <p aria-label="product_list_count">
                               {`จำนวนรายการสินค้าทั้งหมด ${priceFormatter(
-                                sellerProductDetail?.product_list_count
+                                product?.seller?.product_list_count
                               )} ชิ้น`}
                             </p>
                             <p>{`เข้าร่วมเมื่อ ${dateFormatter(
-                              sellerProductDetail?.created_at,
+                              product?.seller?.created_at,
                               "DD/MM/YYYY"
                             )}`}</p>
                           </div>
