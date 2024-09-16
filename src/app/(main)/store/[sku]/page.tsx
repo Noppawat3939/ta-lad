@@ -123,7 +123,9 @@ export default function StoreBySkuPage({ params }: StoreBySkuPageProps) {
             }
             isLoading={isLoading}
             onClickProduct={(product) =>
-              goToDetail(product?.category_name || "", product?.sku || "")
+              product?.category_name &&
+              product?.sku &&
+              goToDetail(product?.category_name, product?.sku)
             }
           />
         </Suspense>
