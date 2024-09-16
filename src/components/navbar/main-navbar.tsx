@@ -114,10 +114,12 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
           aria-label="nav-wrapper"
           className="flex-1 py-1 h-full flex justify-center space-x-4 items-center"
         >
-          <img
-            src="/images/logo-second.png"
-            className="h-[56px] w-[100px] object-cover"
-          />
+          <Link href={"/"} shallow={false}>
+            <img
+              src="/images/logo-second.png"
+              className="h-[56px] w-[100px] object-cover"
+            />
+          </Link>
           <Input
             className="max-w-[1024px] max-xl:max-w-[768px] max-lg:max-w-[520px] max-md:hidden"
             classNames={{ input: "placeholder:text-gray-400" }}

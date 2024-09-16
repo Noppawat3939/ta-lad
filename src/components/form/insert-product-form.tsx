@@ -202,7 +202,7 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
           </CustomCard>
         </div>
 
-        <CustomCard title={"ราคาและส่วนลด"} className="flex-1">
+        <CustomCard title={"ราคา"} className="flex-1">
           <div className="flex flex-col space-y-3">
             <Input
               isRequired
