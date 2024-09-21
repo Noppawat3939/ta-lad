@@ -151,11 +151,11 @@ export default function ProductsPage() {
     <CustomTable
       isLoading={isFetching || search !== debouncedSearch}
       classNames={{
-        wrapper: "max-h-[calc(100vh_-_240px)]",
+        wrapper: "max-h-[calc(100vh_-_240px)] overflow-x-auto",
         tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
-        product_name: { children: "ชื่อสินค้า", order: 1 },
+        product_name: { children: "ชื่อสินค้า", order: 1, width: 240 },
         brand: { children: "แบรนด์", order: 2, width: 180 },
         product_category: {
           children: "หมวดหมู่",
@@ -190,7 +190,9 @@ export default function ProductsPage() {
   return (
     <SidebarLayout
       activeKey="products"
-      classNames={{ contentLayout: "px-4 py-3" }}
+      classNames={{
+        contentLayout: "px-4 py-3",
+      }}
     >
       <section className="bg-white">
         <div className="flex justify-between items-center pt-3 pb-1">
@@ -253,7 +255,7 @@ export default function ProductsPage() {
             </p>
           </div>
         </div>
-        <section className="border-2 border-slate-50 p-3 rounded-lg">
+        <section className="border-2 border-slate-50 p-3 rounded-lg overflow-x-scroll">
           <Suspense>
             {viewProdcut === "list" && renderTable()}
             {viewProdcut === "grid" && renderCards()}
