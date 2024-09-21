@@ -1,15 +1,31 @@
 "use client";
 
 import { productService } from "@/apis";
-import { CustomTable, SellerProductCard, SidebarLayout } from "@/components";
+import {
+  CustomTable,
+  GroupProductsModal,
+  SellerProductCard,
+  SidebarLayout,
+} from "@/components";
 import { useDebounce } from "@/hooks";
 import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
-import { Button, Chip, Input, Tab, Tabs, cn } from "@nextui-org/react";
+import { Product } from "@/types";
+import {
+  Button,
+  Checkbox,
+  Chip,
+  Image,
+  Input,
+  Tab,
+  Tabs,
+  cn,
+} from "@nextui-org/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlignJustify,
   CircleAlert,
   FolderOpen,
+  Group,
   LayoutGrid,
   PackagePlus,
   Plus,
@@ -22,6 +38,17 @@ import { Suspense, useMemo, useState } from "react";
 export default function ProductsPage() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<number[]>([]);
+  const [groupProducts, setGroupProducts] = useState<{
+    isOpen: boolean;
+    products: Pick<Product, "id" | "image">[];
+  }>({
+    isOpen: false,
+    products: [],
+  });
 
   const {
     data,
@@ -41,8 +68,14 @@ export default function ProductsPage() {
         : router.refresh(),
   });
 
-  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
-  const [search, setSearch] = useState("");
+  const insertGroupMutation = useMutation({
+    mutationFn: productService.insertgroupProducts,
+    onSuccess: () => {
+      setSelectedId([]);
+      setGroupProducts({ products: [], isOpen: false });
+      refetchProducts();
+    },
+  });
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -51,12 +84,45 @@ export default function ProductsPage() {
     [data]
   );
 
+  const handleSelectProductId = (checked: boolean, productId: number) => {
+    setSelectedId((prevId) => {
+      if (prevId.length > 0 && prevId.includes(productId)) {
+        return prevId.filter((id) => id !== productId);
+      }
+
+      if (checked) {
+        if (isEmpty(prevId)) return [productId];
+
+        return [...prevId, productId];
+      } else {
+        return prevId;
+      }
+    });
+  };
+
   const products = useMemo(
     () =>
       isEmpty(data)
         ? []
         : data!.map((item) => ({
             key: item.id.toString(),
+            select: (
+              <Checkbox
+                value={String(item.id)}
+                checked={selectedId && selectedId.includes(item.id)}
+                onChange={(e) =>
+                  handleSelectProductId(e.target.checked, +e.target.value)
+                }
+              />
+            ),
+            image: (
+              <Image
+                src={item.image[0]}
+                loading="lazy"
+                alt="product-image"
+                className="min-w-[42px] max-w-[42px] h-[42px] rounded-full object-cover"
+              />
+            ),
             product_name: truncate(item.product_name, 40),
             brand: item.brand,
             product_category: item.category_name,
@@ -155,18 +221,20 @@ export default function ProductsPage() {
         tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
-        product_name: { children: "ชื่อสินค้า", order: 1, width: 240 },
-        brand: { children: "แบรนด์", order: 2, width: 180 },
+        select: { children: "", order: 1, width: 40 },
+        image: { children: "", order: 2, width: 60 },
+        product_name: { children: "ชื่อสินค้า", order: 3, width: 240 },
+        brand: { children: "แบรนด์", order: 4, width: 180 },
         product_category: {
           children: "หมวดหมู่",
-          order: 3,
+          order: 5,
           width: 150,
         },
-        price: { children: "ราคา", order: 4, width: 90 },
-        stock: { children: "สต็อก", order: 5, width: 90 },
-        sku: { children: "รหัสสินค้า", order: 6, width: 120 },
-        created_at: { children: "สร้างเมื่อ", order: 7, width: 120 },
-        action: { children: "Action", order: 8, width: 100, align: "center" },
+        price: { children: "ราคา", order: 6, width: 90 },
+        stock: { children: "สต็อก", order: 7, width: 90 },
+        sku: { children: "รหัสสินค้า", order: 8, width: 120 },
+        created_at: { children: "สร้างเมื่อ", order: 9, width: 120 },
+        action: { children: "Action", order: 10, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}
     />
@@ -200,7 +268,7 @@ export default function ProductsPage() {
             {"สินค้าทั้งหมด"}
           </h1>
 
-          <div className="flex flex-[.55] space-x-4">
+          <div className="flex items-center flex-[.55] space-x-3">
             <Input
               variant="bordered"
               className="flex-1"
@@ -210,11 +278,13 @@ export default function ProductsPage() {
               classNames={{ input: "placeholder:text-gray-400" }}
               placeholder={"ค้นหา"}
               value={search}
+              size="sm"
               onChange={({ target: { value } }) => setSearch(value)}
             />
             <Tabs
               isDisabled={isFetching}
               color="primary"
+              size="sm"
               defaultSelectedKey="list"
               onSelectionChange={(key) => {
                 const selected = key as typeof viewProdcut;
@@ -231,12 +301,14 @@ export default function ProductsPage() {
                 startContent={<Plus className="w-4 h-4" />}
                 color="primary"
                 isLoading={isFetching}
+                size="sm"
               >
                 {"เพิ่มสินค้าใหม่"}
               </Button>
 
               {shouldShowSkuUpdate && (
                 <Button
+                  size="sm"
                   isLoading={updateSkuMutation.isPending}
                   onClick={() => updateSkuMutation.mutate()}
                 >
@@ -244,6 +316,28 @@ export default function ProductsPage() {
                   {"อัพเดท SKU"}
                 </Button>
               )}
+
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (data && data?.length > 0) {
+                    const filteredSelect = data
+                      ?.filter((item) => selectedId.includes(item.id))
+                      ?.map((item) => ({
+                        id: item.id,
+                        image: item.image,
+                      }));
+                    setGroupProducts({
+                      products: filteredSelect,
+                      isOpen: true,
+                    });
+                  }
+                }}
+                isDisabled={isEmpty(selectedId)}
+              >
+                <Group className="w-4 h-4" />
+                {"รวมกลุ่มสินค้า"}
+              </Button>
             </div>
           </div>
         </div>
@@ -262,6 +356,12 @@ export default function ProductsPage() {
           </Suspense>
         </section>
       </section>
+      <GroupProductsModal
+        isOpen={groupProducts.isOpen}
+        products={groupProducts.products}
+        onClose={() => setGroupProducts({ products: [], isOpen: false })}
+        onGroup={(data) => insertGroupMutation.mutate(data)}
+      />
     </SidebarLayout>
   );
 }

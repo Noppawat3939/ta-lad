@@ -95,3 +95,18 @@ export const getListProductBySKU = async (
   );
   return data;
 };
+
+export const insertgroupProducts = async (body: {
+  name: string;
+  product_ids: number[];
+}) => {
+  const { data } = await api.post<TRes<null>>("/product/group/insert", body);
+  return data;
+};
+
+export const unGroupProducts = async (group_product_id: number) => {
+  const { data } = await api.post<TRes<null>>("/product/group/un-group", {
+    group_product_id,
+  });
+  return data;
+};
