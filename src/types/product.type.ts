@@ -36,10 +36,10 @@ export interface Product {
   updated_at: string;
   image: string[];
   sku: string;
-  group_product?: GroupProducts;
+  group_product?: GroupProduct;
 }
 
-export interface GroupProducts {
+export interface GroupProduct {
   id: number;
   name: string;
   product_ids: number[];
