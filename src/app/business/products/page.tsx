@@ -115,6 +115,7 @@ export default function ProductsPage() {
                 }
               />
             ),
+            group_id: item.group_product?.id,
             image: (
               <Image
                 src={item.image[0]}
@@ -221,20 +222,21 @@ export default function ProductsPage() {
         tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
-        select: { children: "", order: 1, width: 40 },
-        image: { children: "", order: 2, width: 60 },
-        product_name: { children: "ชื่อสินค้า", order: 3, width: 240 },
-        brand: { children: "แบรนด์", order: 4, width: 180 },
+        select: { children: "", order: 1, width: 30 },
+        group_id: { children: "group_id", order: 2, width: 40 },
+        image: { children: "", order: 3, width: 60 },
+        product_name: { children: "ชื่อสินค้า", order: 4, width: 240 },
+        brand: { children: "แบรนด์", order: 5, width: 180 },
         product_category: {
           children: "หมวดหมู่",
-          order: 5,
-          width: 150,
+          order: 6,
+          width: 120,
         },
-        price: { children: "ราคา", order: 6, width: 90 },
-        stock: { children: "สต็อก", order: 7, width: 90 },
-        sku: { children: "รหัสสินค้า", order: 8, width: 120 },
-        created_at: { children: "สร้างเมื่อ", order: 9, width: 120 },
-        action: { children: "Action", order: 10, width: 100, align: "center" },
+        price: { children: "ราคา", order: 7, width: 80 },
+        stock: { children: "สต็อก", order: 8, width: 80 },
+        sku: { children: "รหัสสินค้า", order: 9, width: 120 },
+        created_at: { children: "สร้างเมื่อ", order: 10, width: 120 },
+        action: { children: "Action", order: 11, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}
     />

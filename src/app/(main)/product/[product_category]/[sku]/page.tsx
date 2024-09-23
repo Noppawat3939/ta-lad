@@ -115,7 +115,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           alt="product-image"
                           radius="sm"
                           className={cn(
-                            "object-contain border",
+                            "object-cover border-2 min-w-[64px] w-full h-[64px]",
                             currentIndexImage === i
                               ? "border-[#FF731D] shadow-sm"
                               : "border-slate-50"
