@@ -1,4 +1,5 @@
 import type {
+  GroupProduct,
   InsertProduct,
   Pagination,
   Product,
@@ -14,12 +15,18 @@ type PickedSeller = Pick<
   User,
   "id" | "store_name" | "created_at" | "updated_at" | "profile_image"
 > & { product_list_count: number; products_soldout_count?: number };
+type OmittedGroupProduct = Omit<Product, "group_product">;
 
 export type CategoryResponse = TRes<{ data: ProductCategory[]; total: number }>;
 export type GetSellerProducts = TRes<ProductsWithTotal>;
 export type GetProductsList = TRes<ProductsWithTotal>;
 export type GetProductBySKU = TRes<{
-  data: Product & { seller: PickedSeller };
+  data: OmittedGroupProduct & {
+    seller: PickedSeller;
+    group_products?: Omit<GroupProduct, "product_ids"> & {
+      products: OmittedGroupProduct[];
+    };
+  };
 }>;
 export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;
 type GetListProductBySKU = TRes<{
@@ -93,5 +100,20 @@ export const getListProductBySKU = async (
       params: pagination,
     }
   );
+  return data;
+};
+
+export const insertgroupProducts = async (body: {
+  name: string;
+  product_ids: number[];
+}) => {
+  const { data } = await api.post<TRes<null>>("/product/group/insert", body);
+  return data;
+};
+
+export const unGroupProducts = async (group_product_id: number) => {
+  const { data } = await api.post<TRes<null>>("/product/group/ungroup", {
+    group_product_id,
+  });
   return data;
 };

@@ -1,15 +1,44 @@
 "use client";
 
 import { productService } from "@/apis";
-import { CustomTable, SellerProductCard, SidebarLayout } from "@/components";
-import { useDebounce } from "@/hooks";
-import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
-import { Button, Chip, Input, Tab, Tabs, cn } from "@nextui-org/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  CustomTable,
+  GroupProductsModal,
+  Modal,
+  SellerProductCard,
+  SidebarLayout,
+} from "@/components";
+import {
+  useDebounce,
+  useGetSellerProducts,
+  useGroupProduct,
+  useUngroupProduct,
+} from "@/hooks";
+import {
+  dateFormatter,
+  isEmpty,
+  priceFormatter,
+  toLowerCase,
+  truncate,
+} from "@/lib";
+import { useModalStore } from "@/stores";
+import { Product } from "@/types";
+import {
+  Button,
+  Checkbox,
+  Chip,
+  Image,
+  Input,
+  Tab,
+  Tabs,
+  cn,
+} from "@nextui-org/react";
+import { useMutation } from "@tanstack/react-query";
 import {
   AlignJustify,
   CircleAlert,
   FolderOpen,
+  Group,
   LayoutGrid,
   PackagePlus,
   Plus,
@@ -17,21 +46,28 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Fragment, Suspense, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const {
-    data,
-    isFetching,
-    refetch: refetchProducts,
-  } = useQuery({
-    queryFn: productService.getSellerProductList,
-    queryKey: ["seller-product"],
-    select: ({ data }) => data?.data || [],
+  const { setModalState } = useModalStore();
+
+  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<number[]>([]);
+  const [groupProducts, setGroupProducts] = useState<{
+    isOpen: boolean;
+    products: Pick<Product, "id" | "image">[];
+    name?: string;
+    group_product_id?: number;
+  }>({
+    isOpen: false,
+    products: [],
   });
+
+  const { data, isFetching, refetch: refetchProducts } = useGetSellerProducts();
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
@@ -41,8 +77,29 @@ export default function ProductsPage() {
         : router.refresh(),
   });
 
-  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
-  const [search, setSearch] = useState("");
+  const onProductsGroupped = () => {
+    setSelectedId([]);
+    setGroupProducts({ products: [], isOpen: false });
+    refetchProducts();
+  };
+
+  const { mutate: handleGroupProduct } = useGroupProduct({
+    onSuccess: onProductsGroupped,
+  });
+
+  const onProductsUngroupped = () => {
+    setGroupProducts({
+      products: [],
+      isOpen: false,
+      name: undefined,
+      group_product_id: undefined,
+    });
+    refetchProducts();
+  };
+
+  const { mutate: handleUnGrouppedProduct } = useUngroupProduct({
+    onSuccess: onProductsUngroupped,
+  });
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -51,12 +108,70 @@ export default function ProductsPage() {
     [data]
   );
 
+  const handleSelectProductId = (checked: boolean, productId: number) => {
+    setSelectedId((prevId) => {
+      if (prevId.length > 0 && prevId.includes(productId)) {
+        return prevId.filter((id) => id !== productId);
+      }
+
+      if (checked) {
+        if (isEmpty(prevId)) return [productId];
+
+        return [...prevId, productId];
+      } else {
+        return prevId;
+      }
+    });
+  };
+
   const products = useMemo(
     () =>
       isEmpty(data)
         ? []
         : data!.map((item) => ({
             key: item.id.toString(),
+            select: item.group_product?.id ? (
+              <Fragment />
+            ) : (
+              <Checkbox
+                value={String(item.id)}
+                checked={selectedId && selectedId.includes(item.id)}
+                onChange={(e) =>
+                  handleSelectProductId(e.target.checked, +e.target.value)
+                }
+              />
+            ),
+            group_id: (
+              <p
+                aria-label="group-id"
+                className="text-center duration-200 transition-all cursor-pointer hover:text-[#FF731D]"
+                onClick={() => {
+                  const groupedProductIds =
+                    item.group_product?.product_ids || [];
+
+                  const filteredGroupProducts = data
+                    ?.filter((item) => groupedProductIds.includes(item.id))
+                    ?.map((item) => ({ id: item.id, image: item.image }));
+
+                  setGroupProducts({
+                    isOpen: true,
+                    products: filteredGroupProducts || [],
+                    name: item.group_product?.name,
+                    group_product_id: item.group_product?.id,
+                  });
+                }}
+              >
+                {item.group_product?.id}
+              </p>
+            ),
+            image: (
+              <Image
+                src={item.image[0]}
+                loading="lazy"
+                alt="product-image"
+                className="min-w-[42px] max-w-[42px] h-[42px] rounded-full object-cover"
+              />
+            ),
             product_name: truncate(item.product_name, 40),
             brand: item.brand,
             product_category: item.category_name,
@@ -103,22 +218,16 @@ export default function ProductsPage() {
     [data]
   );
 
-  const cleanupToLowerCase = (text: string) => text.trim().toLowerCase();
-
   const productsTable = useMemo(() => {
-    const cleanedDebounced = debouncedSearch.toLowerCase().trim();
+    const cleanedDebounced = toLowerCase(debouncedSearch);
 
     const result =
       cleanedDebounced && viewProdcut === "list"
         ? products.filter((product) =>
             [
-              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
-              cleanupToLowerCase(product.product_name).includes(
-                cleanedDebounced
-              ),
-              cleanupToLowerCase(product.product_category).includes(
-                cleanedDebounced
-              ),
+              toLowerCase(product.brand).includes(cleanedDebounced),
+              toLowerCase(product.product_name).includes(cleanedDebounced),
+              toLowerCase(product.product_category).includes(cleanedDebounced),
             ].some(Boolean)
           )
         : products;
@@ -133,13 +242,9 @@ export default function ProductsPage() {
       cleanedDebounced && viewProdcut === "grid"
         ? data?.filter((product) =>
             [
-              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
-              cleanupToLowerCase(product.product_name).includes(
-                cleanedDebounced
-              ),
-              cleanupToLowerCase(product.category_name).includes(
-                cleanedDebounced
-              ),
+              toLowerCase(product.brand).includes(cleanedDebounced),
+              toLowerCase(product.product_name).includes(cleanedDebounced),
+              toLowerCase(product.category_name).includes(cleanedDebounced),
             ].some(Boolean)
           )
         : data;
@@ -151,22 +256,25 @@ export default function ProductsPage() {
     <CustomTable
       isLoading={isFetching || search !== debouncedSearch}
       classNames={{
-        wrapper: "max-h-[calc(100vh_-_240px)]",
+        wrapper: "max-h-[calc(100vh_-_240px)] overflow-x-auto",
         tBodyRow: "odd:bg-slate-50/60 rounded-sm",
       }}
       headerColumns={{
-        product_name: { children: "ชื่อสินค้า", order: 1 },
-        brand: { children: "แบรนด์", order: 2, width: 180 },
+        select: { children: "", order: 1, width: 30 },
+        group_id: { children: "Group ID", order: 2, width: 30 },
+        image: { children: "", order: 3, width: 60 },
+        product_name: { children: "ชื่อสินค้า", order: 4, width: 240 },
+        brand: { children: "แบรนด์", order: 5, width: 180 },
         product_category: {
           children: "หมวดหมู่",
-          order: 3,
-          width: 150,
+          order: 6,
+          width: 120,
         },
-        price: { children: "ราคา", order: 4, width: 90 },
-        stock: { children: "สต็อก", order: 5, width: 90 },
-        sku: { children: "รหัสสินค้า", order: 6, width: 120 },
-        created_at: { children: "สร้างเมื่อ", order: 7, width: 120 },
-        action: { children: "Action", order: 8, width: 100, align: "center" },
+        price: { children: "ราคา", order: 7, width: 80 },
+        stock: { children: "สต็อก", order: 8, width: 80 },
+        sku: { children: "รหัสสินค้า", order: 9, width: 120 },
+        created_at: { children: "สร้างเมื่อ", order: 10, width: 120 },
+        action: { children: "Action", order: 11, width: 100, align: "center" },
       }}
       bodyColumns={productsTable}
     />
@@ -190,15 +298,20 @@ export default function ProductsPage() {
   return (
     <SidebarLayout
       activeKey="products"
-      classNames={{ contentLayout: "px-4 py-3" }}
+      classNames={{
+        contentLayout: "px-4 py-3",
+      }}
     >
       <section className="bg-white">
         <div className="flex justify-between items-center pt-3 pb-1">
-          <h1 className="text-2xl text-slate-900 font-semibold">
+          <h1
+            aria-label="page-title"
+            className="text-2xl text-slate-900 font-semibold"
+          >
             {"สินค้าทั้งหมด"}
           </h1>
 
-          <div className="flex flex-[.55] space-x-4">
+          <div className="flex items-center flex-[.55] space-x-3">
             <Input
               variant="bordered"
               className="flex-1"
@@ -208,11 +321,13 @@ export default function ProductsPage() {
               classNames={{ input: "placeholder:text-gray-400" }}
               placeholder={"ค้นหา"}
               value={search}
+              size="sm"
               onChange={({ target: { value } }) => setSearch(value)}
             />
             <Tabs
               isDisabled={isFetching}
               color="primary"
+              size="sm"
               defaultSelectedKey="list"
               onSelectionChange={(key) => {
                 const selected = key as typeof viewProdcut;
@@ -229,12 +344,14 @@ export default function ProductsPage() {
                 startContent={<Plus className="w-4 h-4" />}
                 color="primary"
                 isLoading={isFetching}
+                size="sm"
               >
                 {"เพิ่มสินค้าใหม่"}
               </Button>
 
               {shouldShowSkuUpdate && (
                 <Button
+                  size="sm"
                   isLoading={updateSkuMutation.isPending}
                   onClick={() => updateSkuMutation.mutate()}
                 >
@@ -242,6 +359,28 @@ export default function ProductsPage() {
                   {"อัพเดท SKU"}
                 </Button>
               )}
+
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (data && data?.length > 0) {
+                    const filteredSelect = data
+                      ?.filter((item) => selectedId.includes(item.id))
+                      ?.map((item) => ({
+                        id: item.id,
+                        image: item.image,
+                      }));
+                    setGroupProducts({
+                      products: filteredSelect,
+                      isOpen: true,
+                    });
+                  }
+                }}
+                isDisabled={selectedId.length < 2}
+              >
+                <Group className="w-4 h-4" />
+                {"รวมกลุ่มสินค้า"}
+              </Button>
             </div>
           </div>
         </div>
@@ -253,13 +392,33 @@ export default function ProductsPage() {
             </p>
           </div>
         </div>
-        <section className="border-2 border-slate-50 p-3 rounded-lg">
+        <section className="border-2 border-slate-50 p-3 rounded-lg overflow-x-scroll">
           <Suspense>
             {viewProdcut === "list" && renderTable()}
             {viewProdcut === "grid" && renderCards()}
           </Suspense>
         </section>
       </section>
+      <GroupProductsModal
+        isOpen={groupProducts.isOpen}
+        products={groupProducts.products}
+        groupName={groupProducts.name}
+        onClose={() => setGroupProducts({ products: [], isOpen: false })}
+        onGroup={(data) => handleGroupProduct(data)}
+        onUnGroup={() => {
+          setGroupProducts((prev) => ({ ...prev, isOpen: false }));
+          setModalState({
+            isOpen: true,
+            title: "คุณต้องการยกเลิกจัดกลุ่ม?",
+            onOk: () =>
+              groupProducts.group_product_id &&
+              handleUnGrouppedProduct(groupProducts.group_product_id),
+            onCancel: () =>
+              setGroupProducts((prev) => ({ ...prev, isOpen: true })),
+          });
+        }}
+      />
+      <Modal />
     </SidebarLayout>
   );
 }

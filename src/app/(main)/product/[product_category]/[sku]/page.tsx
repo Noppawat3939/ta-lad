@@ -14,6 +14,7 @@ import {
 } from "@/components";
 import { useCount, useMetadata } from "@/hooks";
 import { dateFormatter, priceFormatter } from "@/lib";
+import { Product } from "@/types";
 import {
   Button,
   ButtonProps,
@@ -36,9 +37,11 @@ type ProductDetailPageProps = {
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const router = useRouter();
 
-  const { count, onDecrease, onIncrease } = useCount(1);
+  const { count, onDecrease, onIncrease, onReset } = useCount(1);
 
   const [currentIndexImage, setCurrentIndexImage] = useState(0);
+  const [selectedGroupProductItem, setSelectGroupProductItem] =
+    useState<Product | null>(null);
 
   const data = useQueries({
     queries: [
@@ -109,39 +112,52 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 <section className="flex space-x-4 py-2">
                   <div aria-label="product-images" className="flex-[.9] flex">
                     <div className="flex flex-col mr-2 space-y-2">
-                      {product?.image?.map((image, i) => (
-                        <Image
-                          key={`image-${i}`}
-                          alt="product-image"
-                          radius="sm"
-                          className={cn(
-                            "object-contain border",
-                            currentIndexImage === i
-                              ? "border-[#FF731D] shadow-sm"
-                              : "border-slate-50"
-                          )}
-                          loading="lazy"
-                          src={image}
-                          width={64}
-                          onClick={() => setCurrentIndexImage(i)}
-                        />
-                      ))}
+                      {(selectedGroupProductItem?.image || product?.image)?.map(
+                        (image, i) => (
+                          <Image
+                            key={`image-${i}`}
+                            alt="product-image"
+                            radius="sm"
+                            className={cn(
+                              "object-cover border-2 min-w-[64px] w-full h-[64px]",
+                              currentIndexImage === i
+                                ? "border-[#FF731D] shadow-sm"
+                                : "border-slate-50"
+                            )}
+                            loading="lazy"
+                            src={image}
+                            width={64}
+                            onClick={() => setCurrentIndexImage(i)}
+                          />
+                        )
+                      )}
                     </div>
                     <Image
                       isLoading={isLoading}
                       loading="lazy"
                       height={400}
-                      className="object-contain"
-                      src={product?.image[currentIndexImage]}
+                      radius="none"
+                      className="object-contain h-[400px] w-[300px]"
+                      src={
+                        (selectedGroupProductItem || product)?.image[
+                          currentIndexImage
+                        ]
+                      }
                     />
                   </div>
                   <Show isTruely={product?.id !== undefined}>
                     <div className="flex-[1.2] px-2 flex flex-col gap-1">
-                      <h3 className="text-2xl">{product?.product_name}</h3>
+                      <h3 className="text-2xl h-[80px]">
+                        {(selectedGroupProductItem || product)?.product_name}
+                      </h3>
                       <User
                         className="justify-start w-fit my-1 cursor-pointer"
                         name={product?.seller?.store_name || ""}
-                        onClick={() => goToStore(product?.sku || "")}
+                        onClick={() =>
+                          goToStore(
+                            (selectedGroupProductItem || product)?.sku || ""
+                          )
+                        }
                         avatarProps={{
                           src: product?.seller?.profile_image,
                         }}
@@ -159,34 +175,93 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           </div>
                         }
                       />
-                      <h2 className="text-xl font-medium">
-                        {priceFormatter(product?.price, true)}
+                      <h2 className="text-2xl font-medium">
+                        {priceFormatter(
+                          (selectedGroupProductItem || product)?.price,
+                          true
+                        )}
                       </h2>
+                      <Show
+                        isTruely={
+                          product?.group_products?.products &&
+                          product?.group_products?.products.length > 0
+                        }
+                      >
+                        <section className="flex items-start space-x-5">
+                          <label htmlFor="group-product-name">
+                            {product?.group_products?.name}
+                          </label>
+                          <div
+                            className={cn(
+                              "grid my-2 gap-4 w-fit",
+                              product?.group_products?.products &&
+                                product?.group_products?.products.length > 5
+                                ? "grid-cols-5"
+                                : "grid-cols-4"
+                            )}
+                          >
+                            {product?.group_products?.products?.map(
+                              (groupItem) => (
+                                <div
+                                  key={`group-product-${groupItem.id}`}
+                                  className={cn(
+                                    "cursor-pointer",
+                                    selectedGroupProductItem &&
+                                      selectedGroupProductItem.id ===
+                                        groupItem.id
+                                      ? "opacity-100"
+                                      : "opacity-60"
+                                  )}
+                                  onClick={() => {
+                                    if (currentIndexImage !== 0) {
+                                      setCurrentIndexImage(0);
+                                    }
+                                    if (count !== 0) {
+                                      onReset();
+                                    }
+
+                                    setSelectGroupProductItem(groupItem);
+                                  }}
+                                >
+                                  <Image
+                                    alt="group-product"
+                                    src={groupItem.image[0]}
+                                    radius="sm"
+                                    className="w-[48px] h-[48px] object-cover"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </section>
+                      </Show>
                       <Show isTruely={product?.stock_amount !== undefined}>
                         <span className="flex items-baseline space-x-1">
                           <p className="text-sm">
                             {product && product?.stock_amount > 0
                               ? `มีสินค้าอยู่ ${priceFormatter(
-                                  product!.stock_amount
+                                  selectedGroupProductItem?.stock_amount ||
+                                    product!.stock_amount
                                 )} ชิ้น`
                               : "สินค้าหมด"}
                           </p>
-                          {product &&
-                            product!.stock_amount < 10 &&
-                            product!.stock_amount > 0 && (
-                              <p className="text-xs text-red-500">
-                                {"สินค้ามีจำนวนจำกัด"}
-                              </p>
-                            )}
                         </span>
                       </Show>
+
                       <CounterProduct
                         count={count}
                         onDecrease={onDecrease}
                         onIncrease={onIncrease}
                         isDisabledMax={
+                          (selectedGroupProductItem &&
+                            selectedGroupProductItem?.stock_amount) ||
                           product?.stock_amount
-                            ? count >= product?.stock_amount
+                            ? count >=
+                              Number(
+                                selectedGroupProductItem?.stock_amount ||
+                                  product?.stock_amount
+                              )
                             : false
                         }
                         className="max-w-[100px]"

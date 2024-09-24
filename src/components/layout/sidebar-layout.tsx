@@ -43,7 +43,7 @@ export default function SidebarLayout({
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
       <div className="flex h-full">
-        <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10 max-md:max-w-[200px]">
+        <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10 max-md:max-w-[200px] max-sm:hidden">
           <BussinessAside
             activeKey={activeKey}
             activeSubMenuKey={activeSubMenuKey}
