@@ -11,12 +11,13 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@nextui-org/react";
-import { Fragment, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 
 type GroupProductsModalProps = {
   isOpen: boolean;
   onClose: () => void;
   products: Pick<Product, "id" | "image">[];
+  groupName?: string;
   onGroup: ({
     name,
     product_ids,
@@ -24,6 +25,7 @@ type GroupProductsModalProps = {
     name: string;
     product_ids: number[];
   }) => void;
+  onUnGroup: () => void;
 };
 
 export default function GroupProductsModal({
@@ -31,11 +33,24 @@ export default function GroupProductsModal({
   onClose,
   products,
   onGroup,
+  groupName: name,
+  onUnGroup,
 }: GroupProductsModalProps) {
   const [groupName, setGroupName] = useState("");
 
+  useEffect(() => {
+    if (isOpen && name) {
+      setGroupName(name);
+    }
+  }, [isOpen]);
+
+  const handleClose = useCallback(() => {
+    setGroupName("");
+    onClose();
+  }, []);
+
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose}>
+    <Modal isOpen={isOpen} onOpenChange={handleClose}>
       <ModalContent>
         {() => (
           <Fragment>
@@ -51,7 +66,7 @@ export default function GroupProductsModal({
                 label={"ประเภทกลุ่ม"}
                 placeholder={"สี/ขนาด/ประเภท เป็นต้น"}
               />
-              <div className="flex space-x-1 justify-evenly">
+              <div className="grid grid-cols-5 gap-2">
                 {products.map((product) => (
                   <div key={product.id}>
                     <Image
@@ -66,7 +81,7 @@ export default function GroupProductsModal({
             </ModalBody>
             <ModalFooter>
               <Button
-                isDisabled={!groupName.trim()}
+                isDisabled={name ? true : !groupName.trim()}
                 aria-label="group-btn"
                 onClick={() =>
                   onGroup({
@@ -78,7 +93,13 @@ export default function GroupProductsModal({
               >
                 {"รวมกลุ่ม"}
               </Button>
-              <Button isDisabled>{"ยกเลิกรวมกลุ่ม"}</Button>
+              <Button
+                onClick={onUnGroup}
+                aria-label="un-group-btn"
+                isDisabled={!name}
+              >
+                {"ยกเลิกรวมกลุ่ม"}
+              </Button>
             </ModalFooter>
           </Fragment>
         )}

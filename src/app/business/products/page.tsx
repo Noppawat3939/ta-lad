@@ -4,11 +4,24 @@ import { productService } from "@/apis";
 import {
   CustomTable,
   GroupProductsModal,
+  Modal,
   SellerProductCard,
   SidebarLayout,
 } from "@/components";
-import { useDebounce } from "@/hooks";
-import { dateFormatter, isEmpty, priceFormatter, truncate } from "@/lib";
+import {
+  useDebounce,
+  useGetSellerProducts,
+  useGroupProduct,
+  useUngroupProduct,
+} from "@/hooks";
+import {
+  dateFormatter,
+  isEmpty,
+  priceFormatter,
+  toLowerCase,
+  truncate,
+} from "@/lib";
+import { useModalStore } from "@/stores";
 import { Product } from "@/types";
 import {
   Button,
@@ -20,7 +33,7 @@ import {
   Tabs,
   cn,
 } from "@nextui-org/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   AlignJustify,
   CircleAlert,
@@ -33,11 +46,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Fragment, Suspense, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { setModalState } = useModalStore();
 
   const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
   const [search, setSearch] = useState("");
@@ -45,20 +60,14 @@ export default function ProductsPage() {
   const [groupProducts, setGroupProducts] = useState<{
     isOpen: boolean;
     products: Pick<Product, "id" | "image">[];
+    name?: string;
+    group_product_id?: number;
   }>({
     isOpen: false,
     products: [],
   });
 
-  const {
-    data,
-    isFetching,
-    refetch: refetchProducts,
-  } = useQuery({
-    queryFn: productService.getSellerProductList,
-    queryKey: ["seller-product"],
-    select: ({ data }) => data?.data || [],
-  });
+  const { data, isFetching, refetch: refetchProducts } = useGetSellerProducts();
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
@@ -68,13 +77,28 @@ export default function ProductsPage() {
         : router.refresh(),
   });
 
-  const insertGroupMutation = useMutation({
-    mutationFn: productService.insertgroupProducts,
-    onSuccess: () => {
-      setSelectedId([]);
-      setGroupProducts({ products: [], isOpen: false });
-      refetchProducts();
-    },
+  const onProductsGroupped = () => {
+    setSelectedId([]);
+    setGroupProducts({ products: [], isOpen: false });
+    refetchProducts();
+  };
+
+  const { mutate: handleGroupProduct } = useGroupProduct({
+    onSuccess: onProductsGroupped,
+  });
+
+  const onProductsUngroupped = () => {
+    setGroupProducts({
+      products: [],
+      isOpen: false,
+      name: undefined,
+      group_product_id: undefined,
+    });
+    refetchProducts();
+  };
+
+  const { mutate: handleUnGrouppedProduct } = useUngroupProduct({
+    onSuccess: onProductsUngroupped,
   });
 
   const debouncedSearch = useDebounce(search, 500);
@@ -106,7 +130,9 @@ export default function ProductsPage() {
         ? []
         : data!.map((item) => ({
             key: item.id.toString(),
-            select: (
+            select: item.group_product?.id ? (
+              <Fragment />
+            ) : (
               <Checkbox
                 value={String(item.id)}
                 checked={selectedId && selectedId.includes(item.id)}
@@ -115,7 +141,29 @@ export default function ProductsPage() {
                 }
               />
             ),
-            group_id: item.group_product?.id,
+            group_id: (
+              <p
+                aria-label="group-id"
+                className="text-center duration-200 transition-all cursor-pointer hover:text-[#FF731D]"
+                onClick={() => {
+                  const groupedProductIds =
+                    item.group_product?.product_ids || [];
+
+                  const filteredGroupProducts = data
+                    ?.filter((item) => groupedProductIds.includes(item.id))
+                    ?.map((item) => ({ id: item.id, image: item.image }));
+
+                  setGroupProducts({
+                    isOpen: true,
+                    products: filteredGroupProducts || [],
+                    name: item.group_product?.name,
+                    group_product_id: item.group_product?.id,
+                  });
+                }}
+              >
+                {item.group_product?.id}
+              </p>
+            ),
             image: (
               <Image
                 src={item.image[0]}
@@ -170,22 +218,16 @@ export default function ProductsPage() {
     [data]
   );
 
-  const cleanupToLowerCase = (text: string) => text.trim().toLowerCase();
-
   const productsTable = useMemo(() => {
-    const cleanedDebounced = debouncedSearch.toLowerCase().trim();
+    const cleanedDebounced = toLowerCase(debouncedSearch);
 
     const result =
       cleanedDebounced && viewProdcut === "list"
         ? products.filter((product) =>
             [
-              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
-              cleanupToLowerCase(product.product_name).includes(
-                cleanedDebounced
-              ),
-              cleanupToLowerCase(product.product_category).includes(
-                cleanedDebounced
-              ),
+              toLowerCase(product.brand).includes(cleanedDebounced),
+              toLowerCase(product.product_name).includes(cleanedDebounced),
+              toLowerCase(product.product_category).includes(cleanedDebounced),
             ].some(Boolean)
           )
         : products;
@@ -200,13 +242,9 @@ export default function ProductsPage() {
       cleanedDebounced && viewProdcut === "grid"
         ? data?.filter((product) =>
             [
-              cleanupToLowerCase(product.brand).includes(cleanedDebounced),
-              cleanupToLowerCase(product.product_name).includes(
-                cleanedDebounced
-              ),
-              cleanupToLowerCase(product.category_name).includes(
-                cleanedDebounced
-              ),
+              toLowerCase(product.brand).includes(cleanedDebounced),
+              toLowerCase(product.product_name).includes(cleanedDebounced),
+              toLowerCase(product.category_name).includes(cleanedDebounced),
             ].some(Boolean)
           )
         : data;
@@ -223,7 +261,7 @@ export default function ProductsPage() {
       }}
       headerColumns={{
         select: { children: "", order: 1, width: 30 },
-        group_id: { children: "group_id", order: 2, width: 40 },
+        group_id: { children: "Group ID", order: 2, width: 30 },
         image: { children: "", order: 3, width: 60 },
         product_name: { children: "ชื่อสินค้า", order: 4, width: 240 },
         brand: { children: "แบรนด์", order: 5, width: 180 },
@@ -266,7 +304,10 @@ export default function ProductsPage() {
     >
       <section className="bg-white">
         <div className="flex justify-between items-center pt-3 pb-1">
-          <h1 className="text-2xl text-slate-900 font-semibold">
+          <h1
+            aria-label="page-title"
+            className="text-2xl text-slate-900 font-semibold"
+          >
             {"สินค้าทั้งหมด"}
           </h1>
 
@@ -335,7 +376,7 @@ export default function ProductsPage() {
                     });
                   }
                 }}
-                isDisabled={isEmpty(selectedId)}
+                isDisabled={selectedId.length < 2}
               >
                 <Group className="w-4 h-4" />
                 {"รวมกลุ่มสินค้า"}
@@ -361,9 +402,23 @@ export default function ProductsPage() {
       <GroupProductsModal
         isOpen={groupProducts.isOpen}
         products={groupProducts.products}
+        groupName={groupProducts.name}
         onClose={() => setGroupProducts({ products: [], isOpen: false })}
-        onGroup={(data) => insertGroupMutation.mutate(data)}
+        onGroup={(data) => handleGroupProduct(data)}
+        onUnGroup={() => {
+          setGroupProducts((prev) => ({ ...prev, isOpen: false }));
+          setModalState({
+            isOpen: true,
+            title: "คุณต้องการยกเลิกจัดกลุ่ม?",
+            onOk: () =>
+              groupProducts.group_product_id &&
+              handleUnGrouppedProduct(groupProducts.group_product_id),
+            onCancel: () =>
+              setGroupProducts((prev) => ({ ...prev, isOpen: true })),
+          });
+        }}
       />
+      <Modal />
     </SidebarLayout>
   );
 }

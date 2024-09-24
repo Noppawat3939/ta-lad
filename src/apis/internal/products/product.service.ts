@@ -112,7 +112,7 @@ export const insertgroupProducts = async (body: {
 };
 
 export const unGroupProducts = async (group_product_id: number) => {
-  const { data } = await api.post<TRes<null>>("/product/group/un-group", {
+  const { data } = await api.post<TRes<null>>("/product/group/ungroup", {
     group_product_id,
   });
   return data;
