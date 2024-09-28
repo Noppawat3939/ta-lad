@@ -45,7 +45,9 @@ function Home() {
       {
         queryKey: ["user"],
         queryFn: userService.getUser,
-        enabled: hasCookie("session") && hasCookie("rdtk"),
+        enabled:
+          ["session", "rdtk"].every((key) => hasCookie(key)) ||
+          ["store_session", "srdtk"].every((key) => hasCookie(key)),
         select: (res: GetUserResponse) => {
           if (res.data?.data) {
             setUser(res.data?.data);

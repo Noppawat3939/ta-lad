@@ -5,10 +5,14 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Checkbox,
+  DateRangePicker,
   Input,
+  RadioGroup,
   ScrollShadow,
   Textarea,
   cn,
+  Radio,
 } from "@nextui-org/react";
 import {
   type ReactNode,
@@ -18,19 +22,21 @@ import {
   PropsWithChildren,
   Fragment,
 } from "react";
-import { ImageURLUpload, ImageUpload } from ".";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { commonService, productService } from "@/apis";
+import { ImageURLUpload, ImageUpload, SelectOption } from ".";
+import { useMutation } from "@tanstack/react-query";
+import { productService } from "@/apis";
 import type { InsertProduct } from "@/types";
 import { useModalStore } from "@/stores";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Upload } from "lucide-react";
+import { useGetCategory } from "@/hooks";
 
 interface ICustomCard {
   title: string;
   description?: string;
   children?: ReactNode;
   className?: string;
+  extra?: ReactNode;
 }
 
 const intialValues: InsertProduct = {
@@ -60,14 +66,11 @@ export default function InsertProductForm() {
   const [isShowUploadMainImageUrl, setIsShowUploadMainImageUrl] =
     useState(false);
   const [mainImageUrl, setMainImageUrl] = useState("");
+  const [isShowDiscount, setIsShowDiscount] = useState(false);
 
   const { setModalState } = useModalStore();
 
-  const { data: categories, isFetching } = useQuery({
-    queryKey: ["product-categories"],
-    queryFn: productService.getCategoryList,
-    select: ({ data }) => data?.data || [],
-  });
+  const { categories } = useGetCategory();
 
   const insertProduct = useMutation({
     mutationFn: productService.insertProductItem,
@@ -85,23 +88,23 @@ export default function InsertProductForm() {
     onError: (e) => console.log(e),
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: commonService.uploadImage,
-    onSuccess: (res) => {
-      if (res.url) {
-        imgUrlRef.current.push(res.url);
-      }
+  // const uploadMutation = useMutation({
+  //   mutationFn: commonService.uploadImage,
+  //   onSuccess: (res) => {
+  //     if (res.url) {
+  //       imgUrlRef.current.push(res.url);
+  //     }
 
-      if (imgUrlRef.current.length === productImages.length) {
-        const insertParams = {
-          data: [{ ...values, product_image: imgUrlRef.current }],
-        };
+  //     if (imgUrlRef.current.length === productImages.length) {
+  //       const insertParams = {
+  //         data: [{ ...values, product_image: imgUrlRef.current }],
+  //       };
 
-        insertProduct.mutate(insertParams);
-      }
-    },
-    onError: (e) => console.log(e),
-  });
+  //       insertProduct.mutate(insertParams);
+  //     }
+  //   },
+  //   onError: (e) => console.log(e),
+  // });
 
   const resetValues = useCallback(() => setValues(intialValues), []);
 
@@ -111,6 +114,18 @@ export default function InsertProductForm() {
     },
     []
   );
+
+  const shippingProviders = [
+    { key: "flash", image: "/images/shipping/flash.jpg", label: "Flash" },
+    { key: "kerry", image: "/images/shipping/kerry.jpg", label: "Kerry" },
+    { key: "jandt", image: "/images/shipping/j&t.jpg", label: "J&T" },
+  ];
+
+  const deliveryTime = [
+    { key: "1", value: "1", label: "ภายใน 1 วัน" },
+    { key: "3", value: "3", label: "ภายใน 3 วัน" },
+    { key: "7", value: "7", label: "ภายใน 5-7 วัน" },
+  ];
 
   // const categoryOptions = useMemo(
   //   () =>
@@ -144,10 +159,10 @@ export default function InsertProductForm() {
 
   return (
     <div className="w-full px-3">
-      <ScrollShadow className="h-[calc(100vh-220px)] py-2">
+      <ScrollShadow className="h-[calc(100vh-220px)] no-scrollbar pt-2 pb-[100px]">
         <div className="flex flex-col space-y-4">
           <CustomCard title={"ข้อมูลทั่วไป"} className="flex-1">
-            <div className="flex space-y-3 flex-col">
+            <WrapItem>
               <Input
                 isRequired
                 label={"ชื่อสินค้า"}
@@ -175,7 +190,8 @@ export default function InsertProductForm() {
                   handleUpdateValue("description", value)
                 }
               />
-            </div>
+              <Checkbox aria-label="pre-order">{"สินค้า Pre-order"}</Checkbox>
+            </WrapItem>
           </CustomCard>
 
           <CustomCard title={"รูปภาพสินค้า"}>
@@ -183,7 +199,7 @@ export default function InsertProductForm() {
               <h2 className="text-sm mb-2">{"รูปภาพหลัก 1 รูป"}</h2>
               <p
                 onClick={() => setIsShowUploadMainImageUrl((prev) => !prev)}
-                className="text-sm flex items-center text-[#FF731D] cursor-pointer duration-200 transition-all hover:opacity-60"
+                className="text-sm flex items-center text-primary cursor-pointer duration-200 transition-all hover:opacity-60"
               >
                 {isShowUploadMainImageUrl ? (
                   <Upload className="w-4 h-4 mr-1" />
@@ -244,6 +260,100 @@ export default function InsertProductForm() {
               <ImageURLUpload max={MAX_IMAGE_URL} />
             </div>
           </CustomCard>
+
+          <CustomCard title="หมวดหมู่สินค้า">
+            <WrapItem>
+              <SelectOption
+                isRequired
+                label={"หมวดหมู่สินค้า"}
+                options={
+                  categories?.map((item) => ({
+                    key: item.name,
+                    value: item.name,
+                  })) || []
+                }
+              />
+            </WrapItem>
+          </CustomCard>
+
+          <CustomCard
+            title="ราคาและส่วนลด"
+            extra={
+              <span
+                className="cursor-pointer text-sm text-primary hover:text-primary flex items-center"
+                onClick={() => setIsShowDiscount((prev) => !prev)}
+                aria-label="show-discount-btn"
+              >
+                {isShowDiscount
+                  ? "ไม่ต้องการเพิ่มส่วนลด"
+                  : "ต้องการเพิ่มส่วนลด"}
+              </span>
+            }
+          >
+            <WrapItem>
+              <Input label={"ราคา"} isRequired />
+              {isShowDiscount && (
+                <WrapItem>
+                  <Input label={"ส่วนลด (บาท)"} />
+                  <DateRangePicker label={"ระยะเวลาส่วนลด"} />
+                </WrapItem>
+              )}
+            </WrapItem>
+          </CustomCard>
+
+          <CustomCard title="คลังสินค้า">
+            <Input label={"จำนวนสินค้าทั้งหมด"} isRequired />
+          </CustomCard>
+
+          <CustomCard title="การขนส่ง">
+            <WrapItem>
+              <RadioGroup
+                isRequired
+                label={"ผู้ให้บริการ"}
+                orientation="horizontal"
+                className="space-x-6"
+              >
+                {shippingProviders.map((item) => (
+                  <Radio key={item.key} value={item.key}>
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={item.image}
+                        alt={`shipping-${item.key}`}
+                        className="w-[32px] h-[32px] rounded-lg"
+                      />
+                      <label className="text-sm" htmlFor={item.key}>
+                        {item.label}
+                      </label>
+                    </div>
+                  </Radio>
+                ))}
+              </RadioGroup>
+              <Input label={"ค่าจัดส่ง (บาท)"} isRequired />
+              <RadioGroup
+                isRequired
+                label={"ระยะเวลาจัดส่ง"}
+                orientation="horizontal"
+                className="space-x-6"
+              >
+                {deliveryTime.map((item) => (
+                  <Radio value={item.key} key={item.key}>
+                    <label htmlFor={item.key} className="text-sm">
+                      {item.label}
+                    </label>
+                  </Radio>
+                ))}
+              </RadioGroup>
+            </WrapItem>
+          </CustomCard>
+          <br className="my-4" />
+          <div className="flex justify-center space-x-2">
+            <Button color="primary" className="w-[120px]" role="insert">
+              {"สร้างสินค้า"}
+            </Button>
+            <Button variant="bordered" className="w-[120px]" role="clear" >
+              {"ยกเลิก"}
+            </Button>
+          </div>
 
           {/* <div className="flex flex-col space-y-3">
           <CustomCard title={"หมวดหมู่"}>
@@ -327,11 +437,20 @@ export default function InsertProductForm() {
   );
 }
 
-function CustomCard({ title, children, className, description }: ICustomCard) {
+function CustomCard({
+  title,
+  children,
+  className,
+  description,
+  extra,
+}: ICustomCard) {
   return (
     <Card shadow="none" className={cn("border border-slate-100", className)}>
       <CardHeader className="flex flex-col items-start">
-        <h2 className="text-md text-slate-800 font-medium">{title}</h2>
+        <div className="flex justify-between w-full items-center">
+          <h2 className="text-md text-slate-800 font-medium">{title}</h2>
+          {extra && extra}
+        </div>
         {description && (
           <p className="text-gray-400 mt-1 font-normal text-xs">
             {description}
@@ -350,4 +469,12 @@ function Show({
   if (!whenTruely) return;
 
   return <Fragment>{children}</Fragment>;
+}
+
+function WrapItem({ children }: Readonly<PropsWithChildren>) {
+  return (
+    <div className="flex flex-col space-y-3" aria-label="wrap-item">
+      {children}
+    </div>
+  );
 }

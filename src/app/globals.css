@@ -25,4 +25,13 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-primary {
+    color: #ff731d;
+  }
 }

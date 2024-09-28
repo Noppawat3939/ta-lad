@@ -6,12 +6,12 @@ export default function InsertProductPage() {
   const checkInsertProductList = [
     {
       key: "general",
-      label: "ข้อมูลทั่วไป ได้แก่ ชื่อ,แบรนด์ และคำอธิบายสินค้า",
+      label: "ข้อมูลทั่วไป: ชื่อ, แบรนด์, คำอธิบายสินค้า",
       isCompleted: false,
     },
     {
       key: "image",
-      label: "ข้อมูลรูปภาพ ได้แก่ รูปภาพหลัก และรูปภาพอื่นๆ",
+      label: "ข้อมูลรูปภาพ: รูปภาพหลัก, รูปภาพอื่นๆ",
       isCompleted: true,
     },
   ];
@@ -29,8 +29,8 @@ export default function InsertProductPage() {
           <InsertProductForm />
         </div>
 
-        <div className="flex flex-col p-3 flex-[.35]">
-          <h3 className="font-medium">{"ตรวจสอบ"}</h3>
+        <div className="flex flex-col p-3 flex-[.35] max-lg:hidden">
+          <h3 className="font-medium">{"ตรวจสอบข้อมูลการสร้างสินค้า"}</h3>
           <ul className="flex flex-col space-y-1 mt-2">
             {checkInsertProductList.map((list) => (
               <li
