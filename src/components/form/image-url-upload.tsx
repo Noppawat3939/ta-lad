@@ -1,8 +1,7 @@
 "use client";
 
-import { RegexImageUrl } from "@/lib";
-import { Button, Textarea } from "@nextui-org/react";
-import { Plus } from "lucide-react";
+import { Button, Input } from "@nextui-org/react";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 type ImageURLUploadProps = {
@@ -10,71 +9,65 @@ type ImageURLUploadProps = {
 };
 
 export default function ImageURLUpload({ max }: ImageURLUploadProps) {
-  const [imageUrls, setImageUrls] = useState<string>("");
-  const [isShowTextArea, setIsShowTextArea] = useState(false);
-  const [isInvalidUrl, setIsInvalidUrl] = useState(false);
-
-  const splittedUrl = imageUrls.split("\n").filter((value) => value);
-
-  const handleKeyDown = () => {
-    const hasInvalid = splittedUrl.some((url) => !RegexImageUrl.test(url));
-
-    setIsInvalidUrl(hasInvalid);
-  };
+  const [imagUrls, setImageUrls] = useState<string[]>([]);
 
   return (
     <div className="flex flex-col space-y-3">
-      {isShowTextArea && (
-        <Textarea
-          className="resize-none"
-          label={"ลิงก์รูปภาพ"}
-          isInvalid={isInvalidUrl}
-          errorMessage={isInvalidUrl ? "ลิงก์รูปภาพไม่ถูกต้อง" : undefined}
-          aria-label="image-url"
-          isDisabled={imageUrls.length >= max}
-          placeholder="Enter เพื่อเพิ่มรูปใหม่"
-          onKeyDown={({ key }) => {
-            if (key === "Enter") {
-              handleKeyDown();
-            }
-          }}
-          value={imageUrls}
-          onChange={({ target: { value } }) => {
-            isInvalidUrl && setIsInvalidUrl(false);
-
-            setImageUrls(value);
-          }}
-        />
-      )}
       <Button
         className="w-fit"
-        type="button"
-        onClick={() => {
-          setIsShowTextArea(!isShowTextArea);
-        }}
+        aria-label="add-image-url"
+        isDisabled={imagUrls.length >= max}
+        onClick={() =>
+          setImageUrls((prev) => (prev.length > 0 ? [...prev, ""] : [""]))
+        }
       >
         <Plus className="w-4 h-4" />
         {"เพิ่มลิงก์รูปภาพ"}
       </Button>
-      <div className="grid grid-cols-5 gap-2">
-        {splittedUrl.length >= 1 &&
-          splittedUrl.map((url, i) => (
-            <div
-              className="border rounded cursor-pointer overflow-hidden"
-              key={`image-url-${i}`}
-              onClick={() => {
-                console.log("delete-", i, imageUrls);
-              }}
-            >
-              <img
-                src={url}
-                alt="image-url"
-                loading="lazy"
-                className="w-full h-[90px] object-contain"
-              />
-            </div>
-          ))}
-      </div>
+      {imagUrls.map((imageUrl, i) => (
+        <div key={`image-url-${i}`} className="flex items-center space-x-2">
+          <div
+            aria-label="preview-image-url"
+            className="w-[46px] overflow-hidden rounded-lg border h-[46px]"
+          >
+            <img
+              src={imageUrl || "/images/no-image.jpg"}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <Input
+            label={`ลิงก์รูปภาพที่ ${i + 1}`}
+            size="sm"
+            value={imageUrl}
+            onChange={(e) => {
+              const url = e.target.value;
+              const updatedUrl = imagUrls.map((urlItem, urlIdx) => {
+                if (urlIdx === i) return url;
+
+                return urlItem;
+              });
+
+              setImageUrls(updatedUrl);
+            }}
+            endContent={
+              <Button
+                onClick={() => {
+                  const removedUrl = imagUrls.filter(
+                    (_, urlIdx) => i !== urlIdx
+                  );
+                  setImageUrls(removedUrl);
+                }}
+                isIconOnly
+                variant="light"
+                color="danger"
+                size="sm"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }

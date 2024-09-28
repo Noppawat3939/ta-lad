@@ -5,7 +5,6 @@ import {
   Card,
   CardBody,
   CardHeader,
-  DatePicker,
   Input,
   ScrollShadow,
   Textarea,
@@ -14,20 +13,18 @@ import {
 import {
   type ReactNode,
   useCallback,
-  useMemo,
   useRef,
   useState,
   PropsWithChildren,
   Fragment,
 } from "react";
-import { ImageURLUpload, ImageUpload, SelectOption } from ".";
+import { ImageURLUpload, ImageUpload } from ".";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { commonService, productService } from "@/apis";
 import type { InsertProduct } from "@/types";
-import { isEmpty, numberOnly } from "@/lib";
 import { useModalStore } from "@/stores";
 import { useRouter } from "next/navigation";
-import { motion, useAnimation } from "framer-motion";
+import { Plus, Trash2, Upload } from "lucide-react";
 
 interface ICustomCard {
   title: string;
@@ -51,6 +48,8 @@ const intialValues: InsertProduct = {
   product_image: [],
 };
 
+const MAX_IMAGE_URL = 5;
+
 export default function InsertProductForm() {
   const router = useRouter();
 
@@ -58,6 +57,9 @@ export default function InsertProductForm() {
 
   const [values, setValues] = useState<InsertProduct>(intialValues);
   const [productImages, setProductImages] = useState<(Blob | File)[]>([]);
+  const [isShowUploadMainImageUrl, setIsShowUploadMainImageUrl] =
+    useState(false);
+  const [mainImageUrl, setMainImageUrl] = useState("");
 
   const { setModalState } = useModalStore();
 
@@ -142,7 +144,7 @@ export default function InsertProductForm() {
 
   return (
     <div className="w-full px-3">
-      <ScrollShadow className="h-[calc(100vh-280px)] py-2">
+      <ScrollShadow className="h-[calc(100vh-220px)] py-2">
         <div className="flex flex-col space-y-4">
           <CustomCard title={"ข้อมูลทั่วไป"} className="flex-1">
             <div className="flex space-y-3 flex-col">
@@ -177,18 +179,70 @@ export default function InsertProductForm() {
           </CustomCard>
 
           <CustomCard title={"รูปภาพสินค้า"}>
-            <h2 className="text-sm mb-2">{"รูปภาพหลัก 1 รูป"}</h2>
-            <ImageUpload
-              max={1}
-              onFileUpload={(blob) => {
-                console.log(blob);
-              }}
-              width={400}
-              height={400}
-              fullPreview
-            />
-            <h2 className="text-sm mb-2">{"รูปภาพอื่นๆ (มากสุด 10 รูป)"}</h2>
-            <ImageURLUpload max={10} />
+            <div className="flex justify-between pr-4 py-1">
+              <h2 className="text-sm mb-2">{"รูปภาพหลัก 1 รูป"}</h2>
+              <p
+                onClick={() => setIsShowUploadMainImageUrl((prev) => !prev)}
+                className="text-sm flex items-center text-[#FF731D] cursor-pointer duration-200 transition-all hover:opacity-60"
+              >
+                {isShowUploadMainImageUrl ? (
+                  <Upload className="w-4 h-4 mr-1" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-1" />
+                )}
+                {isShowUploadMainImageUrl
+                  ? "อัพโหลดรูปภาพจากเครื่อง"
+                  : "อัพโหลดด้วยลิงก์"}
+              </p>
+            </div>
+            {isShowUploadMainImageUrl ? (
+              <div>
+                <img
+                  src={mainImageUrl || "/images/no-image.jpg"}
+                  className={cn(
+                    "h-[300px] mb-2 rounded-lg mx-auto",
+                    mainImageUrl ? "border border-slate-50" : undefined
+                  )}
+                />
+                <Input
+                  label={"ลิงก์รูปภาพหลัก"}
+                  value={mainImageUrl}
+                  isRequired
+                  isReadOnly={!!mainImageUrl}
+                  endContent={
+                    <Button
+                      isDisabled={!mainImageUrl}
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      role="delete-main-image"
+                      color={mainImageUrl ? "danger" : "default"}
+                      onClick={() => setMainImageUrl("")}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  }
+                  onChange={(e) => setMainImageUrl(e.target.value.trim())}
+                />
+              </div>
+            ) : (
+              <ImageUpload
+                max={1}
+                onFileUpload={(blob) => {
+                  console.log(blob);
+                }}
+                width={400}
+                height={400}
+                fullPreview
+              />
+            )}
+            <div
+              aria-label="other-image-upload"
+              className="flex-col flex space-y-2 my-3"
+            >
+              <h2 className="text-sm">{`รูปภาพอื่นๆ (มากสุด ${MAX_IMAGE_URL} รูป)`}</h2>
+              <ImageURLUpload max={MAX_IMAGE_URL} />
+            </div>
           </CustomCard>
 
           {/* <div className="flex flex-col space-y-3">

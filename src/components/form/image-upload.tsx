@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useRef, useState } from "react";
-import { delay, isEmpty, isUndefined } from "@/lib";
+import { delay, isUndefined } from "@/lib";
 import { Button, Image, cn } from "@nextui-org/react";
 import { Trash2, Upload } from "lucide-react";
 import Compressor from "compressorjs";
@@ -29,7 +29,6 @@ export default function ImageUpload({
 
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<(File | Blob)[]>([]);
-  const [imageUrl, setImageUrl] = useState("");
   const [imageUrlList, setImageUrlList] = useState<string[]>([]);
   const [mainFile, setMainFile] = useState<File | Blob>();
 
@@ -70,15 +69,6 @@ export default function ImageUpload({
 
     setFileList(removedFile);
     onFileUpload?.(removedFile);
-  };
-
-  const handleSaveUrl = () => {
-    const updatedUrl = isEmpty(imageUrlList)
-      ? [imageUrl]
-      : [...imageUrlList, imageUrl];
-
-    setImageUrlList(updatedUrl);
-    setImageUrl("");
   };
 
   const isDisabled = fullPreview
