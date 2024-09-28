@@ -43,9 +43,6 @@ type InsertMethod = "google_sheet" | "csv" | "form";
 
 type PageParams = { action: "view" | "edit" | "insert" };
 
-const GOOGLE_SHEET_TEST_URL =
-  "https://docs.google.com/spreadsheets/d/10q7cJqt8F3ce-OsAcP5vmXjhLOnYq19yWiwYWmYD30U/pub?output=csv";
-
 function ProductInsert() {
   const router = useRouter();
   const search = useSearchParams();
@@ -255,11 +252,7 @@ function ProductInsert() {
       key: "form",
       icon: FileInput,
       label: "Insert Form",
-      children: (
-        <InsertProductForm
-          mode={params.action === "insert" ? "insert" : "edit"}
-        />
-      ),
+      children: <InsertProductForm />,
     },
     {
       key: "csv",

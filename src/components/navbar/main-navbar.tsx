@@ -9,7 +9,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@nextui-org/react";
-import { Search, ShoppingCart } from "lucide-react";
+import {
+  LogOut,
+  Search,
+  ShoppingCart,
+  ShoppingCartIcon,
+  Tag,
+  User,
+} from "lucide-react";
 import { Fragment, useMemo } from "react";
 import { SearchKeywordModal } from "..";
 import { useSearchKeywordStore, useUserStore } from "@/stores";
@@ -43,28 +50,67 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
   );
 
   const userMenus = useMemo(
-    () => [
-      { key: "profile", href: "/profile", label: "บัญชีของฉัน" },
-      { key: "order", href: "/order", label: "รายการคำสั่งซื้อของฉัน" },
-      {
-        key: "signout",
-        onClick: () => handleLogout(),
-        label: "ออกจากระบบ",
-      },
-    ],
-    [handleLogout]
+    () =>
+      user?.store_name
+        ? [
+            {
+              key: "product",
+              href: "/business/products",
+              label: "สินค้าทั้งหมด",
+              icon: Tag,
+            },
+            {
+              key: "profile",
+              href: "/profile",
+              label: "บัญชีของฉัน",
+              icon: User,
+            },
+            {
+              key: "signout",
+              onClick: () => handleLogout(),
+              label: "ออกจากระบบ",
+              icon: LogOut,
+            },
+          ]
+        : [
+            {
+              key: "order",
+              href: "/order",
+              label: "รายการคำสั่งซื้อของฉัน",
+              icon: ShoppingCartIcon,
+            },
+            {
+              key: "profile",
+              href: "/profile",
+              label: "บัญชีของฉัน",
+              icon: User,
+            },
+            {
+              key: "signout",
+              onClick: () => handleLogout(),
+              label: "ออกจากระบบ",
+              icon: LogOut,
+            },
+          ],
+    [handleLogout, user]
   );
+
+  const profile = useMemo(() => {
+    if (user?.profile_image) return user?.profile_image;
+    if (user?.store_name) return "/images/seller.png";
+    return "/images/user.png";
+  }, [user]);
 
   return (
     <Fragment>
       <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-20">
         <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
-          {user?.id || hasCookie("rdtk") ? (
+          {user?.id || hasCookie("rdtk" || "srdtk") ? (
             <Popover placement="bottom" showArrow>
               <PopoverTrigger contextMenu={"hover"}>
                 <span className="flex items-center space-x-2">
                   <Image
-                    src={user?.profile_image}
+                    src={profile}
                     width={20}
                     height={20}
                     loading="lazy"
@@ -73,7 +119,9 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
                   />
                   <p>
                     {truncate(
-                      `${user?.first_name || ""} ${user?.last_name || ""}`,
+                      `${user?.first_name || ""} ${user?.last_name || ""} ${
+                        user?.store_name || ""
+                      }`,
                       20
                     )}
                   </p>
@@ -82,7 +130,11 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
               <PopoverContent className="py-2 shadow-sm">
                 <ul className="text-xs flex flex-col space-y-2">
                   {userMenus.map((menu) => (
-                    <li key={`menu-${menu.key}`}>
+                    <li
+                      key={`menu-${menu.key}`}
+                      className="py-1 flex items-center space-x-2 px-2"
+                    >
+                      <menu.icon className="w-4 h-4" />
                       <Link
                         className="hover:text-foreground-500/80 duration-200 transition-all"
                         href={menu.href || ""}
