@@ -79,3 +79,5 @@ export const isNewRelaseProduct = (created_at: string, compare_day = 7) =>
   dayjs().diff(created_at) <= compare_day;
 
 export const toLowerCase = (text: string) => text.trim().toLowerCase();
+
+export const isUndefined = <T>(v: T) => typeof v === "undefined";

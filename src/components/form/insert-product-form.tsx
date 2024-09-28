@@ -7,6 +7,7 @@ import {
   CardHeader,
   DatePicker,
   Input,
+  ScrollShadow,
   Textarea,
   cn,
 } from "@nextui-org/react";
@@ -19,13 +20,14 @@ import {
   PropsWithChildren,
   Fragment,
 } from "react";
-import { ImageUpload, SelectOption } from ".";
+import { ImageURLUpload, ImageUpload, SelectOption } from ".";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { commonService, productService } from "@/apis";
 import type { InsertProduct } from "@/types";
 import { isEmpty, numberOnly } from "@/lib";
 import { useModalStore } from "@/stores";
 import { useRouter } from "next/navigation";
+import { motion, useAnimation } from "framer-motion";
 
 interface ICustomCard {
   title: string;
@@ -33,10 +35,6 @@ interface ICustomCard {
   children?: ReactNode;
   className?: string;
 }
-
-type InsertProductFormProps = {
-  mode: "insert" | "edit";
-};
 
 const intialValues: InsertProduct = {
   product_name: "",
@@ -53,7 +51,7 @@ const intialValues: InsertProduct = {
   product_image: [],
 };
 
-export default function InsertProductForm({ mode }: InsertProductFormProps) {
+export default function InsertProductForm() {
   const router = useRouter();
 
   const imgUrlRef = useRef<string[]>([]);
@@ -112,71 +110,88 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
     []
   );
 
-  const categoryOptions = useMemo(
-    () =>
-      categories?.map((category) => ({
-        key: category.name,
-        value: category.name,
-      })),
-    [categories]
-  );
+  // const categoryOptions = useMemo(
+  //   () =>
+  //     categories?.map((category) => ({
+  //       key: category.name,
+  //       value: category.name,
+  //     })),
+  //   [categories]
+  // );
 
-  const handleCreateProduct = async () => {
-    if (values?.product_image && values.product_image.length >= 1) {
-      insertProduct.mutate({ data: [values] });
+  // const handleCreateProduct = async () => {
+  //   if (values?.product_image && values.product_image.length >= 1) {
+  //     insertProduct.mutate({ data: [values] });
 
-      return;
-    }
+  //     return;
+  //   }
 
-    let formDataList = [];
-    for (let index = 0; index < productImages.length; index++) {
-      const imageFile = productImages[index];
-      const form = new FormData();
+  //   let formDataList = [];
+  //   for (let index = 0; index < productImages.length; index++) {
+  //     const imageFile = productImages[index];
+  //     const form = new FormData();
 
-      form.append("image", imageFile);
-      formDataList.push(form);
-    }
+  //     form.append("image", imageFile);
+  //     formDataList.push(form);
+  //   }
 
-    for (let formData of formDataList) {
-      uploadMutation.mutate(formData);
-    }
-  };
+  //   for (let formData of formDataList) {
+  //     uploadMutation.mutate(formData);
+  //   }
+  // };
 
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-4">
-        <CustomCard title={"ข้อมูลทั่วไป"} className="flex-1">
-          <div className="flex space-y-3 flex-col">
-            <Input
-              isRequired
-              label={"ชื่อสินค้า"}
-              name="product_name"
-              value={values.product_name}
-              onChange={({ target: { value } }) =>
-                handleUpdateValue("product_name", value)
-              }
-            />
-            <Input
-              isRequired
-              label={"แบรนด์สินค้า"}
-              name="brand"
-              value={values.brand}
-              onChange={({ target: { value } }) =>
-                handleUpdateValue("brand", value)
-              }
-            />
-            <Textarea
-              label={"คำอธิบายสินค้า"}
-              name="description"
-              value={values.description}
-              onChange={({ target: { value } }) =>
-                handleUpdateValue("description", value)
-              }
-            />
-          </div>
-        </CustomCard>
+    <div className="w-full px-3">
+      <ScrollShadow className="h-[calc(100vh-280px)] py-2">
+        <div className="flex flex-col space-y-4">
+          <CustomCard title={"ข้อมูลทั่วไป"} className="flex-1">
+            <div className="flex space-y-3 flex-col">
+              <Input
+                isRequired
+                label={"ชื่อสินค้า"}
+                name="product_name"
+                value={values.product_name}
+                onChange={({ target: { value } }) =>
+                  handleUpdateValue("product_name", value)
+                }
+              />
+              <Input
+                isRequired
+                label={"แบรนด์สินค้า"}
+                name="brand"
+                value={values.brand}
+                onChange={({ target: { value } }) =>
+                  handleUpdateValue("brand", value)
+                }
+              />
+              <Textarea
+                label={"คำอธิบายสินค้า"}
+                name="description"
+                value={values.description}
+                className="max-h-[200px] resize-none"
+                onChange={({ target: { value } }) =>
+                  handleUpdateValue("description", value)
+                }
+              />
+            </div>
+          </CustomCard>
 
-        <div className="flex flex-col space-y-3">
+          <CustomCard title={"รูปภาพสินค้า"}>
+            <h2 className="text-sm mb-2">{"รูปภาพหลัก 1 รูป"}</h2>
+            <ImageUpload
+              max={1}
+              onFileUpload={(blob) => {
+                console.log(blob);
+              }}
+              width={400}
+              height={400}
+              fullPreview
+            />
+            <h2 className="text-sm mb-2">{"รูปภาพอื่นๆ (มากสุด 10 รูป)"}</h2>
+            <ImageURLUpload max={10} />
+          </CustomCard>
+
+          {/* <div className="flex flex-col space-y-3">
           <CustomCard title={"หมวดหมู่"}>
             <SelectOption
               isRequired
@@ -200,9 +215,9 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
               }
             />
           </CustomCard>
-        </div>
+        </div> */}
 
-        <CustomCard title={"ราคา"} className="flex-1">
+          {/* <CustomCard title={"ราคา"} className="flex-1">
           <div className="flex flex-col space-y-3">
             <Input
               isRequired
@@ -213,38 +228,10 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
                 handleUpdateValue("price", +value)
               }
             />
-            <Show whenTruely={mode === "edit"}>
-              <Fragment>
-                <Input
-                  className="flex-[.5]"
-                  label={"เปอร์เซ็นต์ส่วนลด"}
-                  value={values.discount_percent?.toString()}
-                  name="discount_percent"
-                  onChange={({ target: { value } }) =>
-                    handleUpdateValue("discount_percent", +value)
-                  }
-                />
-                <div className="flex space-x-3">
-                  <DatePicker
-                    className="flex-[.5]"
-                    label={"วันที่เริ่มลด (Start date discount)"}
-                    name="discount_start_date"
-                    onChange={(value) => {
-                      console.log(value);
-                    }}
-                  />
-                  <DatePicker
-                    className="flex-[.5]"
-                    label={"วันที่ลดราคาสุดท้าย (End date discount)"}
-                    name="discount_end_date"
-                  />
-                </div>
-              </Fragment>
-            </Show>
           </div>
-        </CustomCard>
+        </CustomCard> */}
 
-        <CustomCard
+          {/* <CustomCard
           title={"รูปภาพสินค้า"}
           description={"อัพโหลดรูปมากที่สุดจำนวน 2 รูปภาพ"}
         >
@@ -257,9 +244,10 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
             width={400}
             height={400}
           />
-        </CustomCard>
-      </div>
-      <div className="flex w-full p-4 space-x-2 justify-center">
+        </CustomCard> */}
+        </div>
+      </ScrollShadow>
+      {/* <div className="flex w-full p-4 space-x-2 justify-center">
         <Button
           role="insert"
           onClick={handleCreateProduct}
@@ -280,7 +268,7 @@ export default function InsertProductForm({ mode }: InsertProductFormProps) {
         >
           {"ยกเลิก"}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

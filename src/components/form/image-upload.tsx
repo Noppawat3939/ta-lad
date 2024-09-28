@@ -1,8 +1,8 @@
 "use client";
 
 import { Fragment, useRef, useState } from "react";
-import { RegexImageUrl, delay, isEmpty } from "@/lib";
-import { Button, Image, Input } from "@nextui-org/react";
+import { delay, isEmpty, isUndefined } from "@/lib";
+import { Button, Image, cn } from "@nextui-org/react";
 import { Trash2, Upload } from "lucide-react";
 import Compressor from "compressorjs";
 
@@ -12,7 +12,7 @@ type ImageUploadProps = {
   height?: number;
   quality?: number;
   onFileUpload?: (file: (File | Blob)[]) => void;
-  onImageUrlChange?: (url: string[]) => void;
+  fullPreview?: boolean;
 };
 
 const UPLOADING_RATE = 200;
@@ -23,7 +23,7 @@ export default function ImageUpload({
   width,
   height,
   quality = 0.8,
-  onImageUrlChange,
+  fullPreview = false,
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +31,7 @@ export default function ImageUpload({
   const [fileList, setFileList] = useState<(File | Blob)[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [imageUrlList, setImageUrlList] = useState<string[]>([]);
-  const [errorImageUrl, setErrorImageUrl] = useState("");
+  const [mainFile, setMainFile] = useState<File | Blob>();
 
   const handleUpdatePreviewImage = async (file: File) => {
     const wait = file.size / UPLOADING_RATE;
@@ -44,6 +44,10 @@ export default function ImageUpload({
       height: height || 500,
       quality,
       success: (fileRes) => {
+        if (fullPreview) {
+          setMainFile(fileRes);
+          return;
+        }
         const updateFile = [...fileList, fileRes];
         setFileList(updateFile);
         onFileUpload?.(updateFile);
@@ -58,7 +62,6 @@ export default function ImageUpload({
       const removedUrl = imageUrlList.filter((_, idx) => idx !== removedIndex);
 
       setImageUrlList(removedUrl);
-      onImageUrlChange?.(removedUrl);
 
       return;
     }
@@ -70,24 +73,45 @@ export default function ImageUpload({
   };
 
   const handleSaveUrl = () => {
-    if (!RegexImageUrl.test(imageUrl)) {
-      setErrorImageUrl("ลิงก์รูปภาพไม่ถูกต้อง");
-      return;
-    }
-
     const updatedUrl = isEmpty(imageUrlList)
       ? [imageUrl]
       : [...imageUrlList, imageUrl];
 
     setImageUrlList(updatedUrl);
-    onImageUrlChange?.(updatedUrl);
     setImageUrl("");
   };
 
-  const isDisabled = (fileList.length || imageUrlList.length) >= max;
+  const isDisabled = fullPreview
+    ? !isUndefined(mainFile)
+    : (fileList.length || imageUrlList.length) >= max;
 
   return (
     <section>
+      {fullPreview && (
+        <div className="relative w-fit mx-auto">
+          <img
+            src={
+              mainFile ? URL.createObjectURL(mainFile) : "/images/no-image.jpg"
+            }
+            className={cn(
+              "h-[300px] mb-2 rounded-lg",
+              mainFile ? "border" : undefined
+            )}
+          />
+          <Button
+            className={cn(
+              "z-[2] absolute rounded-full border-red-200 h-6 top-2 right-2",
+              mainFile ? "flex" : "hidden"
+            )}
+            size="sm"
+            variant="bordered"
+            isIconOnly
+            onClick={() => setMainFile(undefined)}
+          >
+            <Trash2 className="w-3 h-3 text-red-500" />
+          </Button>
+        </div>
+      )}
       <div className="flex justify-center items-center border-dotted border-2 rounded-lg min-h-[150px]">
         <Button
           isDisabled={isDisabled}
@@ -115,28 +139,6 @@ export default function ImageUpload({
             file && handleUpdatePreviewImage(file);
           }}
         />
-      </div>
-      <p className="text-xs mb-2 text-foreground-500/80 text-center">
-        {"หรือ"}
-      </p>
-      <div className="flex items-center space-x-2">
-        <Input
-          label={"ลิงก์รูปภาพ"}
-          size="sm"
-          value={imageUrl}
-          onChange={({ target: { value } }) => {
-            if (errorImageUrl) {
-              setErrorImageUrl("");
-            }
-
-            setImageUrl(value.trim());
-          }}
-          isInvalid={!!errorImageUrl}
-          errorMessage={errorImageUrl}
-        />
-        <Button isDisabled={!imageUrl || isDisabled} onClick={handleSaveUrl}>
-          {"บันทึก"}
-        </Button>
       </div>
       <div className="flex space-x-2 mt-2">
         {fileList.length > 0 &&
