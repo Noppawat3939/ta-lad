@@ -98,7 +98,7 @@ export default function CustomTable<TBody extends any[]>({
       isHeaderSticky
       topContent={topContent}
       classNames={{
-        wrapper: cn("p-0 rounded min-w-[1024px]", classNames?.wrapper),
+        wrapper: cn("p-0 rounded min-w-[1100px]", classNames?.wrapper),
       }}
     >
       <TableHeader>{renderHeader()}</TableHeader>
