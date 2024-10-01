@@ -16,18 +16,25 @@ import type { User as UserType } from "@/types";
 import { useUserStore } from "@/stores";
 import { useLogout } from "@/hooks";
 
+interface IInjectSubMenu {
+  key: string;
+  children: {
+    key: string;
+    label: ReactNode;
+    icon?: LucideProps;
+  }[];
+}
+
+interface IClassNames {
+  contentLayout?: string;
+  aside?: string;
+}
+
 type SidebarLayoutProps = Readonly<PropsWithChildren> & {
   activeKey?: string;
   activeSubMenuKey?: string;
-  classNames?: { contentLayout?: string };
-  injectSubMenu?: {
-    key: string;
-    children: {
-      key: string;
-      label: ReactNode;
-      icon?: LucideProps;
-    }[];
-  };
+  classNames?: IClassNames;
+  injectSubMenu?: IInjectSubMenu;
 };
 
 export default function SidebarLayout({
@@ -43,7 +50,12 @@ export default function SidebarLayout({
   return (
     <section role="sidebar-layout" className="flex-1 w-full h-screen">
       <div className="flex h-full">
-        <div className="flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10 max-md:max-w-[200px] max-sm:hidden">
+        <div
+          className={cn(
+            "flex-1 max-w-[240px] h-full border-r-2 border-slate-50 z-10 max-md:max-w-[200px] max-sm:hidden",
+            classNames?.aside
+          )}
+        >
           <BussinessAside
             activeKey={activeKey}
             activeSubMenuKey={activeSubMenuKey}
