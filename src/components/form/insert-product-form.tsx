@@ -198,6 +198,8 @@ export default function InsertProductForm() {
               <WrapItem>
                 <Input
                   isRequired
+                  isInvalid={!!err?.product_name?.[0]}
+                  errorMessage={err?.product_name?.[0]}
                   label={"ชื่อสินค้า"}
                   name="product_name"
                   value={values.product_name}
@@ -207,6 +209,8 @@ export default function InsertProductForm() {
                 />
                 <Input
                   isRequired
+                  isInvalid={!!err?.brand?.[0]}
+                  errorMessage={err?.brand?.[0]}
                   label={"แบรนด์สินค้า"}
                   name="brand"
                   value={values.brand}
@@ -225,6 +229,7 @@ export default function InsertProductForm() {
                 />
                 <Checkbox
                   aria-label="pre-order"
+                  name="is_preorder"
                   classNames={{ label: "text-sm" }}
                   onChange={({ target: { checked } }) =>
                     handleUpdateValue("is_preorder", checked)
@@ -255,6 +260,7 @@ export default function InsertProductForm() {
               {isShowUploadMainImageUrl ? (
                 <div>
                   <img
+                    aria-label="product_main_image"
                     src={values.product_main_image || "/images/no-image.jpg"}
                     className={cn(
                       "h-[300px] mb-2 rounded-lg mx-auto",
@@ -267,6 +273,13 @@ export default function InsertProductForm() {
                     label={"ลิงก์รูปภาพหลัก"}
                     value={values.product_main_image}
                     isRequired
+                    name="product_main_image"
+                    isInvalid={
+                      isShowUploadMainImageUrl && !!err?.product_main_image?.[0]
+                    }
+                    errorMessage={
+                      isShowUploadMainImageUrl && err?.product_main_image?.[0]
+                    }
                     isReadOnly={!!values.product_main_image}
                     endContent={
                       <Button
@@ -314,6 +327,9 @@ export default function InsertProductForm() {
                 <SelectOption
                   isRequired
                   label={"หมวดหมู่สินค้า"}
+                  name="category_name"
+                  isInvalid={!!err?.category_name?.[0]}
+                  errorMessage={err?.category_name?.[0]}
                   options={productCategories}
                   onSelectionChange={(value) =>
                     handleUpdateValue(
@@ -343,6 +359,9 @@ export default function InsertProductForm() {
                 <Input
                   label={"ราคา"}
                   isRequired
+                  name="price"
+                  isInvalid={!!err?.price?.[0]}
+                  errorMessage={err?.price?.[0]}
                   value={values.price.toString()}
                   onChange={({ target: { value } }) =>
                     handleUpdateValue("price", value)
@@ -352,6 +371,7 @@ export default function InsertProductForm() {
                   <WrapItem>
                     <Input
                       label={"ส่วนลด (บาท)"}
+                      name="discount_price"
                       value={values.discount_price?.toString()}
                       onChange={({ target: { value } }) =>
                         handleUpdateValue("discount_price", value)
@@ -359,6 +379,8 @@ export default function InsertProductForm() {
                     />
                     <DateRangePicker
                       label={"ระยะเวลาส่วนลด"}
+                      startName="discount_start_date"
+                      endName="discount_end_date"
                       classNames={{ calendarContent: "bg-white" }}
                       onChange={({ start, end }) => {
                         const updatedDiscountDate: InsertProductState = {
@@ -379,6 +401,7 @@ export default function InsertProductForm() {
               <Input
                 label={"จำนวนสินค้าทั้งหมด"}
                 isRequired
+                name="stock_amount"
                 isInvalid={!!err?.stock_amount?.[0]}
                 errorMessage={err?.stock_amount?.[0]}
                 value={values.stock_amount.toString()}
@@ -393,6 +416,9 @@ export default function InsertProductForm() {
                 <RadioGroup
                   isRequired
                   label={"ผู้ให้บริการ"}
+                  name="shipping_provider"
+                  isInvalid={!!err?.shipping_provider?.[0]}
+                  errorMessage={err?.shipping_provider?.[0]}
                   orientation="horizontal"
                   className="space-x-6"
                   value={values.shipping_provider}
@@ -422,6 +448,9 @@ export default function InsertProductForm() {
                 <Input
                   label={"ค่าจัดส่ง (บาท)"}
                   isRequired
+                  name="shipping_fee"
+                  isInvalid={!!err?.shipping_fee?.[0]}
+                  errorMessage={err?.shipping_fee?.[0]}
                   value={values.shipping_fee?.toString()}
                   onChange={({ target: { value } }) =>
                     handleUpdateValue("shipping_fee", value)
@@ -429,6 +458,9 @@ export default function InsertProductForm() {
                 />
                 <RadioGroup
                   isRequired
+                  name="shipping_delivery_time"
+                  isInvalid={!!err?.shipping_delivery_time?.[0]}
+                  errorMessage={err?.shipping_delivery_time?.[0]}
                   label={"ระยะเวลาจัดส่ง"}
                   orientation="horizontal"
                   className="space-x-6"
