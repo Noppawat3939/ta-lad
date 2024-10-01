@@ -51,7 +51,7 @@ export default function InsertProductPage() {
 
   return (
     <SidebarLayout
-      classNames={{ contentLayout: "px-4 py-3", aside: "max-md:hidden" }}
+      classNames={{ contentLayout: "px-4 py-3", aside: "max-lg:hidden" }}
       activeSubMenuKey="insert"
     >
       <section className="flex space-x-2">
@@ -65,20 +65,20 @@ export default function InsertProductPage() {
         <div className="flex flex-col p-3 flex-[.35] max-md:flex-[.3]">
           <h3 className="font-medium">{"ตรวจสอบข้อมูลการสร้างสินค้า"}</h3>
           <ul className="flex flex-col space-y-1 mt-2">
-            {checkInsertProductList.map((list) => (
+            {checkInsertProductList.map(({ key, isCompleted, label }) => (
               <li
-                key={list.key}
+                key={key}
                 className={cn(
                   "flex items-center text-sm",
-                  list.isCompleted ? "text-slate-700" : "text-slate-700/50"
+                  isCompleted ? "text-slate-700" : "text-slate-700/50"
                 )}
               >
-                {list.isCompleted ? (
+                {isCompleted ? (
                   <CheckCircle className="w-3 h-3 mr-1 text-teal-500" />
                 ) : (
                   <Circle className="w-3 h-3 mr-1" />
                 )}
-                {list.label}
+                {label}
               </li>
             ))}
           </ul>
