@@ -18,6 +18,9 @@ export interface InsertProduct {
   discount_end_date?: string;
   product_images: { image: string; is_main: boolean }[];
   is_preorder: boolean;
+  provider: string;
+  shipping_fee: number;
+  delivery_time: number;
 }
 
 export interface Product {

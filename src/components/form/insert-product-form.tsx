@@ -35,6 +35,8 @@ import { InsertProductState } from "@/stores/use-insert-product";
 import { useFormState } from "react-dom";
 import { formSchemaAction } from "@/actions";
 import { insertProductSchema } from "@/actions";
+import { z } from "zod";
+import { Modal } from "..";
 
 interface ICustomCard {
   title: string;
@@ -52,14 +54,14 @@ const intialValues: InsertProductState = {
   price: 1,
   stock_amount: 1,
   sold_amount: 0,
-  discount_price: undefined,
+  discount_price: 0,
   discount_start_date: undefined,
   discount_end_date: undefined,
   product_images: [],
   product_main_image: "",
   is_preorder: false,
   shipping_provider: "",
-  shipping_fee: undefined,
+  shipping_fee: 0,
   shipping_delivery_time: "",
 };
 
@@ -68,14 +70,12 @@ const MAX_IMAGE_URL = 5;
 export default function InsertProductForm() {
   const router = useRouter();
 
-  const imgUrlRef = useRef<string[]>([]);
-
   const { values, setValues } = useInsertProductStore();
 
   const [err, formAction] = useFormState(
     () =>
       formSchemaAction(insertProductSchema, values, ({ data }) => {
-        console.log("success", data);
+        handleCreateProduct(data as z.infer<typeof insertProductSchema>);
       }),
     null
   );
@@ -91,14 +91,13 @@ export default function InsertProductForm() {
   const insertProduct = useMutation({
     mutationFn: productService.insertProductItem,
     onSuccess: (res) => {
+      console.log(1, res);
       if (res.success) {
         setModalState({
           isOpen: true,
           title: "สร้างสินค้าใหม่เรียบร้อย",
           onOk: () => router.push("/business/products"),
         });
-        imgUrlRef.current = [];
-        resetValues();
       }
     },
     onError: (e) => console.log(e),
@@ -131,8 +130,6 @@ export default function InsertProductForm() {
   //   },
   //   onError: (e) => console.log(e),
   // });
-
-  const resetValues = useCallback(() => setValues(intialValues), []);
 
   const handleUpdateValue = useCallback(
     (key: keyof InsertProductState, value: number | string | boolean) => {
@@ -168,26 +165,28 @@ export default function InsertProductForm() {
     [categories]
   );
 
-  // const handleCreateProduct = async () => {
-  //   if (values?.product_image && values.product_image.length >= 1) {
-  //     insertProduct.mutate({ data: [values] });
+  const handleCreateProduct = (data: z.infer<typeof insertProductSchema>) => {
+    const mappedBody = {
+      product_name: data.product_name,
+      brand: data.brand,
+      description: data.description,
+      category_name: data.category_name,
+      price: data.price,
+      stock_amount: data.stock_amount,
+      discount_price: data.discount_price,
+      discount_start_date: data.discount_start_date,
+      discount_end_date: data.discount_end_date,
+      is_preorder: data.is_preorder,
+      product_images: [
+        { image: data.product_main_image, is_main: true },
+      ].concat(data.product_images.map((image) => ({ image, is_main: false }))),
+      provider: data.shipping_provider,
+      delivery_time: data.shipping_delivery_time,
+      shipping_fee: data.shipping_fee || 0,
+    } as InsertProduct;
 
-  //     return;
-  //   }
-
-  //   let formDataList = [];
-  //   for (let index = 0; index < productImages.length; index++) {
-  //     const imageFile = productImages[index];
-  //     const form = new FormData();
-
-  //     form.append("image", imageFile);
-  //     formDataList.push(form);
-  //   }
-
-  //   for (let formData of formDataList) {
-  //     uploadMutation.mutate(formData);
-  //   }
-  // };
+    insertProduct.mutate({ data: [mappedBody] });
+  };
 
   return (
     <div className="w-full px-3 max-md:px-0">
@@ -318,7 +317,12 @@ export default function InsertProductForm() {
                 className="flex-col flex space-y-2 my-3"
               >
                 <h2 className="text-sm">{`รูปภาพอื่นๆ (มากสุด ${MAX_IMAGE_URL} รูป)`}</h2>
-                <ImageURLUpload max={MAX_IMAGE_URL} />
+                <ImageURLUpload
+                  max={MAX_IMAGE_URL}
+                  onChange={(product_images) => {
+                    setValues({ ...values, product_images });
+                  }}
+                />
               </div>
             </CustomCard>
 
@@ -490,6 +494,7 @@ export default function InsertProductForm() {
                 className="w-[120px]"
                 role="insert"
                 type="submit"
+                isLoading={insertProduct.isPending}
               >
                 {"สร้างสินค้า"}
               </Button>
@@ -500,28 +505,7 @@ export default function InsertProductForm() {
           </div>
         </form>
       </ScrollShadow>
-      {/* <div className="flex w-full p-4 space-x-2 justify-center">
-        <Button
-          role="insert"
-          onClick={handleCreateProduct}
-          isDisabled={isEmpty(productImages) && isEmpty(values.product_image)}
-          isLoading={
-            isFetching || uploadMutation.isPending || insertProduct.isPending
-          }
-          className="w-[150px]"
-          color="primary"
-        >
-          {"สร้างสินค้า"}
-        </Button>
-        <Button
-          variant="bordered"
-          className="w-[150px]"
-          onClick={resetValues}
-          isDisabled={uploadMutation.isPending || insertProduct.isPending}
-        >
-          {"ยกเลิก"}
-        </Button>
-      </div> */}
+      <Modal />
     </div>
   );
 }

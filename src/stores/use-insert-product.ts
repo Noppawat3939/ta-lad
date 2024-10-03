@@ -16,7 +16,7 @@ export interface InsertProductState {
   product_main_image: string;
   is_preorder: boolean;
   shipping_provider: string;
-  shipping_fee?: number;
+  shipping_fee: number;
   shipping_delivery_time: string;
 }
 
@@ -41,7 +41,7 @@ const initial: InsertProductState = {
   product_main_image: "",
   is_preorder: false,
   shipping_provider: "",
-  shipping_fee: undefined,
+  shipping_fee: 0,
   shipping_delivery_time: "",
 };
 
