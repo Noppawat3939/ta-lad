@@ -6,9 +6,10 @@ import { useState } from "react";
 
 type ImageURLUploadProps = {
   max: number;
+  onChange: (images: string[]) => void;
 };
 
-export default function ImageURLUpload({ max }: ImageURLUploadProps) {
+export default function ImageURLUpload({ max, onChange }: ImageURLUploadProps) {
   const [imagUrls, setImageUrls] = useState<string[]>([]);
 
   return (
@@ -17,9 +18,9 @@ export default function ImageURLUpload({ max }: ImageURLUploadProps) {
         className="w-fit"
         aria-label="add-image-url"
         isDisabled={imagUrls.length >= max}
-        onClick={() =>
-          setImageUrls((prev) => (prev.length > 0 ? [...prev, ""] : [""]))
-        }
+        onClick={() => {
+          setImageUrls((prev) => (prev.length > 0 ? [...prev, ""] : [""]));
+        }}
       >
         <Plus className="w-4 h-4" />
         {"เพิ่มลิงก์รูปภาพ"}
@@ -48,6 +49,7 @@ export default function ImageURLUpload({ max }: ImageURLUploadProps) {
               });
 
               setImageUrls(updatedUrl);
+              onChange(updatedUrl);
             }}
             endContent={
               <Button
@@ -56,6 +58,7 @@ export default function ImageURLUpload({ max }: ImageURLUploadProps) {
                     (_, urlIdx) => i !== urlIdx
                   );
                   setImageUrls(removedUrl);
+                  onChange(removedUrl);
                 }}
                 isIconOnly
                 variant="light"
