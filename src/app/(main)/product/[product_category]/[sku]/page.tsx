@@ -66,6 +66,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
   const product = data[0].data;
   const productsRelate = data[1].data;
+  const isLoadingProductsRelate = data[1].isFetching;
 
   useMetadata({
     title: `${product?.product_name} | JUBPI จัดไป` || "JUBPI จัดไป",
@@ -302,6 +303,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           <h3 className="font-medium">{"สินค้าที่เกี่ยวข้อง"}</h3>
           <Suspense>
             <ProductRelateCardGroup
+              isLoading={isLoadingProductsRelate}
               items={productsRelate}
               onClick={(data) =>
                 router.push(
