@@ -48,3 +48,7 @@ export interface GroupProduct {
   name: string;
   product_ids: number[];
 }
+
+export type QueryPropducts = Partial<{
+  category_name: string;
+}>;

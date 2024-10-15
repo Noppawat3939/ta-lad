@@ -4,6 +4,7 @@ import type {
   Pagination,
   Product,
   ProductCategory,
+  QueryPropducts,
   ServiceResponse as TRes,
   User,
 } from "@/types";
@@ -52,10 +53,12 @@ export const getSellerProductList = async () => {
   return data;
 };
 
-export const getProductList = async (params?: {
-  page: number;
-  page_size: number;
-}) => {
+export const getProductList = async (
+  params?: {
+    page: number;
+    page_size: number;
+  } & QueryPropducts
+) => {
   const { data } = await api.get<GetProductsList>("/product/item/list", {
     params,
     timeout: 10000,
