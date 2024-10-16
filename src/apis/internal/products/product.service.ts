@@ -4,6 +4,7 @@ import type {
   Pagination,
   Product,
   ProductCategory,
+  ProductShipping,
   QueryPropducts,
   ServiceResponse as TRes,
   User,
@@ -27,6 +28,7 @@ export type GetProductBySKU = TRes<{
     group_products?: Omit<GroupProduct, "product_ids"> & {
       products: OmittedGroupProduct[];
     };
+    product_shipping?: ProductShipping;
   };
 }>;
 export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;

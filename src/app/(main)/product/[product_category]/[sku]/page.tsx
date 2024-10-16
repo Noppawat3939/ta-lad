@@ -13,7 +13,7 @@ import {
   ProductRelateCardGroup,
 } from "@/components";
 import { useCount, useMetadata } from "@/hooks";
-import { dateFormatter, priceFormatter } from "@/lib";
+import { dateFormatter, isUndefined, priceFormatter } from "@/lib";
 import { Product } from "@/types";
 import {
   Button,
@@ -26,7 +26,7 @@ import {
   cn,
 } from "@nextui-org/react";
 import { useQueries } from "@tanstack/react-query";
-import { Minus, Plus } from "lucide-react";
+import { CircleCheck, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Fragment, type PropsWithChildren, Suspense, useState } from "react";
 
@@ -267,6 +267,25 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                         }
                         className="max-w-[100px]"
                       />
+
+                      <Show
+                        isTruely={!isUndefined(product?.product_shipping?.id)}
+                      >
+                        <div className="flex flex-col space-y-1 mt-3">
+                          <h3>{"การจัดส่ง"}</h3>
+                          <ul className="text-sm font-[300]">
+                            <li className="flex items-center">
+                              <CircleCheck className="w-3 h-3 mr-1 text-primary" />
+                              {`ผู้ให้บริการขนส่ง ${product?.product_shipping?.provider}`}
+                            </li>
+                            <li className="flex items-center">
+                              <CircleCheck className="w-3 h-3 mr-1 text-primary" />
+                              {`ระยะเวลาจัดส่งโดยประมาณ ${product?.product_shipping?.delivery_time} วัน`}
+                            </li>
+                          </ul>
+                        </div>
+                      </Show>
+
                       <Button color="primary" className="w-[180px] my-4">
                         <Plus className="w-4 h-4" />
                         {"หยิบใส่ตระกร้า"}
