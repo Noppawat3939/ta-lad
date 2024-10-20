@@ -9,7 +9,6 @@ import {
 } from "@/lib";
 import type { Product } from "@/types";
 import {
-  Button,
   Card,
   CardBody,
   CardFooter,
@@ -145,21 +144,16 @@ export default function ProductCardGroup({
                           <p className="text-[10px]">{`ขายไปแล้ว ${item.sold_amount} ชิ้น`}</p>
                         )}
                       </div>
-                      <Button
-                        color={isSold ? "default" : "primary"}
-                        isDisabled={isSold}
-                        isLoading={!item.product_name}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onClickToCart?.(item.sku);
-                        }}
+                      <p
+                        className={cn(
+                          "text-sm",
+                          isSold
+                            ? "text-slate-400/80 font-[300]"
+                            : "text-primary"
+                        )}
                       >
-                        {!item.product_name
-                          ? "กำลังโหลดสินค้า"
-                          : isSold
-                          ? "สินค้าหมด"
-                          : "หยิบใส่ตระกร้า"}
-                      </Button>
+                        {isSold ? "สินค้าหมด" : "มีสินค้าพร้อมส่ง"}
+                      </p>
                     </Fragment>
                   )}
                 </CardFooter>
