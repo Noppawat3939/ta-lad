@@ -55,6 +55,9 @@ export const loginUser = async (body: LoginUser) => {
 };
 
 export const loginSeller = async (body: LoginUser) => {
-  const { data } = await api.post("/auth/login-seller", body);
+  const { data } = await api.post<TRes<LoginUserResponse>>(
+    "/auth/login-seller",
+    body
+  );
   return data;
 };

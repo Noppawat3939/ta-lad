@@ -52,3 +52,10 @@ export interface GroupProduct {
 export type QueryPropducts = Partial<{
   category_name: string;
 }>;
+
+export type ProductShipping = {
+  id: number;
+  provider: string;
+  shipping_fee: number;
+  delivery_time: number;
+};
