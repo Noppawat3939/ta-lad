@@ -48,13 +48,9 @@ export default function LoginForm({ withRole }: LoginFormProps) {
 
   const onSubmit = (data: typeof values) => {
     setCallbackLogin({
-      onError: () => {
-        console.error("error");
-      },
+      onError: () => console.error("error"),
       onSuccess: () => {
-        // router.push("/business/products")
-        typeof window !== "undefined" &&
-          window.location.replace("/business/products");
+        typeof window !== "undefined" && window.location.replace("/");
       },
     });
 

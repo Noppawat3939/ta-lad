@@ -8,7 +8,7 @@ import { setCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
 
 const initialState = {
-  onSuccess: () => {},
+  onSuccess: (res?: unknown) => {},
   onError: () => {},
 };
 
@@ -51,7 +51,8 @@ export default function useLogin(withSeller = false) {
         );
 
         await delay(1000);
-        callbackLogin.onSuccess();
+
+        callbackLogin.onSuccess(data?.data);
       }
     },
     onError: (e) => {
