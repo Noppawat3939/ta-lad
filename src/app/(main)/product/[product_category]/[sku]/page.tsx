@@ -2,8 +2,8 @@
 
 import { productService } from "@/apis";
 import {
-  GetProductBySKU,
-  GetProductsRelateBySKU,
+  type GetProductBySKU,
+  type GetProductsRelateBySKU,
 } from "@/apis/internal/products";
 import {
   Breadcrumb,
@@ -102,7 +102,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         },
       });
     } else {
-      console.log("insert !");
+      console.log("insert !", { count, product_id: product?.id });
     }
   };
 

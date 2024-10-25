@@ -1,44 +1,16 @@
-import type {
-  GroupProduct,
-  InsertProduct,
-  Pagination,
-  Product,
-  ProductCategory,
-  ProductShipping,
-  QueryPropducts,
-  ServiceResponse as TRes,
-  User,
-} from "@/types";
+import type { InsertProduct, Pagination, QueryPropducts } from "@/types";
 import { api } from "..";
-
-type UpdateProductSKU = TRes<null>;
-type ProductsWithTotal = { total: number; data: Product[] };
-type PickedSeller = Pick<
-  User,
-  "id" | "store_name" | "created_at" | "updated_at" | "profile_image"
-> & { product_list_count: number; products_soldout_count?: number };
-type OmittedGroupProduct = Omit<Product, "group_product">;
-
-export type CategoryResponse = TRes<{ data: ProductCategory[]; total: number }>;
-export type GetSellerProducts = TRes<ProductsWithTotal>;
-export type GetProductsList = TRes<ProductsWithTotal>;
-export type GetProductBySKU = TRes<{
-  data: OmittedGroupProduct & {
-    seller: PickedSeller;
-    group_products?: Omit<GroupProduct, "product_ids"> & {
-      products: OmittedGroupProduct[];
-    };
-    product_shipping?: ProductShipping;
-  };
-}>;
-export type GetProductsRelateBySKU = TRes<ProductsWithTotal>;
-type GetListProductBySKU = TRes<{
-  data: {
-    all_product: Product[];
-    new_arriaval: Product[];
-    seller: PickedSeller;
-  };
-}>;
+import { TIMEOUT } from "@/apis/constant";
+import type {
+  CategoryResponse,
+  GetListProductBySKU,
+  GetProductBySKU,
+  GetProductsList,
+  GetProductsRelateBySKU,
+  GetSellerProducts,
+  UpdateProductSKU,
+  Updated,
+} from "./type";
 
 export const getCategoryList = async () => {
   const { data } = await api.get<CategoryResponse>("/product/category/list");
@@ -46,7 +18,7 @@ export const getCategoryList = async () => {
 };
 
 export const insertProductItem = async (body: { data: InsertProduct[] }) => {
-  const { data } = await api.post<TRes<null>>("/product/item/insert", body);
+  const { data } = await api.post<Updated>("/product/item/insert", body);
   return data;
 };
 
@@ -63,7 +35,7 @@ export const getProductList = async (
 ) => {
   const { data } = await api.get<GetProductsList>("/product/item/list", {
     params,
-    timeout: 10000,
+    timeout: TIMEOUT,
   });
   return data;
 };
@@ -75,7 +47,7 @@ export const updateSkuProduct = async () => {
 
 export const getProductBySKU = async (sku: string) => {
   const { data } = await api.get<GetProductBySKU>(`/product/item/${sku}`, {
-    timeout: 10000,
+    timeout: TIMEOUT,
   });
   return data;
 };
@@ -87,7 +59,7 @@ export const getProductsRelateBySKU = async (
   const { data } = await api.get<GetProductsRelateBySKU>(
     `/product/item/relate/${sku}`,
     {
-      timeout: 10000,
+      timeout: TIMEOUT,
       params: pagination,
     }
   );
@@ -101,7 +73,7 @@ export const getListProductBySKU = async (
   const { data } = await api.get<GetListProductBySKU>(
     `/product/seller-product/list/${sku}`,
     {
-      timeout: 10000,
+      timeout: TIMEOUT,
       params: pagination,
     }
   );
@@ -112,12 +84,12 @@ export const insertgroupProducts = async (body: {
   name: string;
   product_ids: number[];
 }) => {
-  const { data } = await api.post<TRes<null>>("/product/group/insert", body);
+  const { data } = await api.post<Updated>("/product/group/insert", body);
   return data;
 };
 
 export const unGroupProducts = async (group_product_id: number) => {
-  const { data } = await api.post<TRes<null>>("/product/group/ungroup", {
+  const { data } = await api.post<Updated>("/product/group/ungroup", {
     group_product_id,
   });
   return data;
