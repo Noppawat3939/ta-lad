@@ -1,7 +1,7 @@
 "use client";
 
 import type { PropsWithChildren } from "react";
-import { useGetUser } from "@/hooks";
+import { useGetUser, useGetCartsProduct } from "@/hooks";
 import { Role } from "@/types";
 import { isEmpty } from "@/lib";
 import { Spinner } from "@nextui-org/react";
@@ -16,6 +16,7 @@ export default function AuthProvider({
   allowedRoles,
 }: AuthProviderProps) {
   const { userData, isFetching } = useGetUser();
+  useGetCartsProduct();
 
   if (
     userData &&

@@ -8,7 +8,7 @@ import {
   MainFooter,
 } from "@/components";
 import { useSearchKeywordStore, useUserStore } from "@/stores";
-import { useShortcutKey } from "@/hooks";
+import { useShortcutKey, useGetCartsProduct } from "@/hooks";
 import { useQueries } from "@tanstack/react-query";
 import { productService, userService } from "@/apis";
 import { CategoryResponse, GetProductsList } from "@/apis/internal/products";
@@ -28,6 +28,8 @@ function Home() {
   const router = useRouter();
 
   const setUser = useUserStore((s) => s.setUser);
+
+  useGetCartsProduct();
 
   const data = useQueries({
     queries: [

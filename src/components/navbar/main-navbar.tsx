@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Fragment, useMemo } from "react";
 import { SearchKeywordModal } from "..";
-import { useSearchKeywordStore, useUserStore } from "@/stores";
+import { useCartStore, useSearchKeywordStore, useUserStore } from "@/stores";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { truncate } from "@/lib";
@@ -32,11 +32,13 @@ type MainNavbarProps = {
 
 export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
   const { onOpen } = useSearchKeywordStore();
+
   const search = useSearchParams();
 
   const handleLogout = useLogout();
 
   const user = useUserStore((s) => s.user);
+  const cartCount = useCartStore((s) => s.count);
 
   const keywordSearch = search.get("k");
 
@@ -199,16 +201,23 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
             }
           />
           {!(hideCardBtn || user?.role === "store") && (
-            <Button
-              as={Link}
-              href="/cart"
-              aria-label="cart-link"
-              color="primary"
-              isIconOnly
-              className="max-md:absolute max-md:right-4"
-            >
-              <ShoppingCart className="w-5 h-5" />
-            </Button>
+            <div className="relative">
+              <Button
+                as={Link}
+                href="/cart"
+                aria-label="cart-link"
+                color={cartCount > 0 ? "default" : "primary"}
+                isIconOnly
+                className="max-md:absolute max-md:right-4"
+              >
+                <ShoppingCart className="w-5 h-5" />
+              </Button>
+              {cartCount > 0 && (
+                <sub className="absolute -top-[2px] -right-[2px] bg-primary text-white shadow rounded-full flex justify-center font-medium items-center w-[20px] h-[20px]">
+                  {cartCount}
+                </sub>
+              )}
+            </div>
           )}
         </div>
       </nav>

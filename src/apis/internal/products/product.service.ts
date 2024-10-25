@@ -5,6 +5,7 @@ import type {
   CategoryResponse,
   GetListProductBySKU,
   GetProductBySKU,
+  GetProductCartsUser,
   GetProductsList,
   GetProductsRelateBySKU,
   GetSellerProducts,
@@ -92,5 +93,10 @@ export const unGroupProducts = async (group_product_id: number) => {
   const { data } = await api.post<Updated>("/product/group/ungroup", {
     group_product_id,
   });
+  return data;
+};
+
+export const getCartsUser = async () => {
+  const { data } = await api.get<GetProductCartsUser>("/product/cart");
   return data;
 };

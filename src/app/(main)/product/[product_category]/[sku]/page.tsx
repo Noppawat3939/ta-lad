@@ -80,7 +80,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const isLoadingProductsRelate = data[1].isFetching;
 
   useMetadata({
-    title: `${product?.product_name} | JUBPI จัดไป` || "JUBPI จัดไป",
+    title: `${product?.product_name || ""} JUBPI จัดไป` || "JUBPI จัดไป",
   });
 
   const goToStore = (sku: string) => router.push(`/store/${sku}`);

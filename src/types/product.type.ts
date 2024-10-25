@@ -59,3 +59,15 @@ export type ProductShipping = {
   shipping_fee: number;
   delivery_time: number;
 };
+
+export type ProductCartStatus = "open" | "paid" | "cancelled";
+
+export type ProductCart = {
+  id: number;
+  product_id: number;
+  user_id: number;
+  amount: number;
+  price: number;
+  status: ProductCartStatus;
+  product: Product;
+};

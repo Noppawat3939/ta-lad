@@ -1,6 +1,7 @@
 import type {
   GroupProduct,
   Product,
+  ProductCart,
   ProductCategory,
   ProductShipping,
   ServiceResponse,
@@ -48,3 +49,5 @@ export type GetProductBySKU = ServiceResponse<{
     product_shipping?: ProductShipping;
   };
 }>;
+
+export type GetProductCartsUser = ServiceResponse<ProductCart[]>;
