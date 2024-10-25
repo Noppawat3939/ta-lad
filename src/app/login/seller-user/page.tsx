@@ -1,9 +1,10 @@
 import { LoginForm, MainFooter, MainLayout } from "@/components";
 import { type Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = { title: "JUDPI - เข้าสู่ระบบด้วยร้านค้า" };
 
-export default function SellerLoginPage() {
+function SellerLogin() {
   return (
     <MainLayout
       hideBackBtn
@@ -14,5 +15,13 @@ export default function SellerLoginPage() {
       </section>
       <MainFooter />
     </MainLayout>
+  );
+}
+
+export default function SellerLoginPage() {
+  return (
+    <Suspense>
+      <SellerLogin />
+    </Suspense>
   );
 }

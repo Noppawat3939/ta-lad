@@ -1,10 +1,10 @@
 import { LoginForm, MainFooter, MainLayout } from "@/components";
 import { type Metadata } from "next";
-import { Fragment } from "react";
+import { Fragment, Suspense } from "react";
 
 export const metadata: Metadata = { title: "JUDPI - เข้าสู่ระบบ" };
 
-export default function UserLoginPage() {
+function UserLogin() {
   return (
     <Fragment>
       <MainLayout
@@ -17,5 +17,13 @@ export default function UserLoginPage() {
         <MainFooter />
       </MainLayout>
     </Fragment>
+  );
+}
+
+export default function UserLoginPage() {
+  return (
+    <Suspense>
+      <UserLogin />
+    </Suspense>
   );
 }
