@@ -42,9 +42,17 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
 
   const topNavLinks = useMemo(
     () => [
-      { key: "login", href: "/login/seller-user", label: "ขายสินค้าที่นี่" },
-      { key: "login", href: "/login/end-user", label: "ล็อคอิน" },
-      { key: "login", href: "/registration/end-user", label: "สมัครสมาชิก" },
+      {
+        key: "login_seller_user",
+        href: "/login/seller-user",
+        label: "ขายสินค้าที่นี่",
+      },
+      { key: "login_end_user", href: "/login/end-user", label: "ล็อคอิน" },
+      {
+        key: "register_end_user",
+        href: "/registration/end-user",
+        label: "สมัครสมาชิก",
+      },
     ],
     []
   );
