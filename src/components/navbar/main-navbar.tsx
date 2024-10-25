@@ -198,7 +198,7 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
               </Kbd>
             }
           />
-          {!hideCardBtn && (
+          {!(hideCardBtn || user?.role === "store") && (
             <Button
               as={Link}
               href="/cart"
