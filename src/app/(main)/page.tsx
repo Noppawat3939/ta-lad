@@ -8,7 +8,7 @@ import {
   MainFooter,
 } from "@/components";
 import { useSearchKeywordStore, useUserStore } from "@/stores";
-import { useShortcutKey, useGetCartsProduct } from "@/hooks";
+import { useShortcutKey, useGetCartsProduct, useGetUser } from "@/hooks";
 import { useQueries } from "@tanstack/react-query";
 import { productService, userService } from "@/apis";
 import { CategoryResponse, GetProductsList } from "@/apis/internal/products";
@@ -19,6 +19,7 @@ import type { GetUserResponse } from "@/apis/internal/user";
 import { Product } from "@/types";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { isUndefined } from "@/lib";
 
 const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
   ssr: false,
@@ -27,9 +28,8 @@ const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
 function Home() {
   const router = useRouter();
 
-  const setUser = useUserStore((s) => s.setUser);
-
-  useGetCartsProduct();
+  const { userData } = useGetUser();
+  useGetCartsProduct(!isUndefined(userData?.id));
 
   const data = useQueries({
     queries: [
@@ -44,18 +44,18 @@ function Home() {
         queryFn: productService.getCategoryList,
         select: ({ data }: CategoryResponse) => data?.data,
       },
-      {
-        queryKey: ["user"],
-        queryFn: userService.getUser,
-        enabled:
-          ["session", "rdtk"].every((key) => hasCookie(key)) ||
-          ["store_session", "srdtk"].every((key) => hasCookie(key)),
-        select: (res: GetUserResponse) => {
-          if (res.data?.data) {
-            setUser(res.data?.data);
-          }
-        },
-      },
+      // {
+      //   queryKey: ["user"],
+      //   queryFn: userService.getUser,
+      //   enabled:
+      //     ["session", "rdtk"].every((key) => hasCookie(key)) ||
+      //     ["store_session", "srdtk"].every((key) => hasCookie(key)),
+      //   select: (res: GetUserResponse) => {
+      //     if (res.data?.data) {
+      //       setUser(res.data?.data);
+      //     }
+      //   },
+      // },
     ],
   });
 
@@ -113,8 +113,8 @@ function Home() {
 
 export default function HomePage() {
   return (
-    <Suspense>
-      <Home />
-    </Suspense>
+    // <Suspense>
+    <Home />
+    // </Suspense>
   );
 }

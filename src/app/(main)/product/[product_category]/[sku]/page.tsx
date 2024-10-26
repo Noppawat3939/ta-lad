@@ -41,7 +41,10 @@ type ProductDetailPageProps = {
   params: { product_category: string; sku: string };
 };
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default function ProductDetailPage({
+  params,
+  ...rest
+}: ProductDetailPageProps) {
   const router = useRouter();
 
   const { count, onDecrease, onIncrease, onReset } = useCount(1);

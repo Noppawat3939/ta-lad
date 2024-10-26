@@ -8,6 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  cn,
 } from "@nextui-org/react";
 import {
   LogOut,
@@ -38,7 +39,8 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
   const handleLogout = useLogout();
 
   const user = useUserStore((s) => s.user);
-  const cartCount = useCartStore((s) => s.count);
+
+  const { carts } = useCartStore();
 
   const keywordSearch = search.get("k");
 
@@ -114,7 +116,20 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
   return (
     <Fragment>
       <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-20">
-        <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
+        <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end items-center py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
+          <p className="hidden max-md:block max-md:relative max-md:py-1">
+            <ShoppingCart
+              className={cn(
+                "w-4 h-4",
+                carts.length > 0 ? "text-slate-500" : "text-slate-400/50"
+              )}
+            />
+            {carts.length > 0 && (
+              <sub className="absolute -top-[4px] -right-[8px] bg-red-600 text-white shadow rounded-full flex justify-center font-medium items-center w-[18px] h-[18px]">
+                {carts.length}
+              </sub>
+            )}
+          </p>
           {user?.id || hasCookie("rdtk" || "srdtk") ? (
             <Popover placement="bottom" showArrow>
               <PopoverTrigger contextMenu={"hover"}>
@@ -127,7 +142,7 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
                     className="rounded-full object-cover"
                     alt="profile"
                   />
-                  <p>
+                  <p className="max-sm:hidden">
                     {truncate(
                       `${user?.first_name || ""} ${user?.last_name || ""} ${
                         user?.store_name || ""
@@ -201,20 +216,19 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
             }
           />
           {!(hideCardBtn || user?.role === "store") && (
-            <div className="relative">
+            <div className="relative max-md:hidden">
               <Button
                 as={Link}
                 href="/cart"
                 aria-label="cart-link"
-                color={cartCount > 0 ? "default" : "primary"}
+                color={carts.length > 0 ? "default" : "primary"}
                 isIconOnly
-                className="max-md:absolute max-md:right-4"
               >
                 <ShoppingCart className="w-5 h-5" />
               </Button>
-              {cartCount > 0 && (
+              {carts.length > 0 && (
                 <sub className="absolute -top-[2px] -right-[2px] bg-primary text-white shadow rounded-full flex justify-center font-medium items-center w-[20px] h-[20px]">
-                  {cartCount}
+                  {carts.length}
                 </sub>
               )}
             </div>

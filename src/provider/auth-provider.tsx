@@ -3,7 +3,7 @@
 import type { PropsWithChildren } from "react";
 import { useGetUser, useGetCartsProduct } from "@/hooks";
 import { Role } from "@/types";
-import { isEmpty } from "@/lib";
+import { isEmpty, isUndefined } from "@/lib";
 import { Spinner } from "@nextui-org/react";
 import { NotFoundContainer } from "@/components";
 
@@ -16,7 +16,8 @@ export default function AuthProvider({
   allowedRoles,
 }: AuthProviderProps) {
   const { userData, isFetching } = useGetUser();
-  useGetCartsProduct();
+
+  useGetCartsProduct(!isUndefined(userData?.id));
 
   if (
     userData &&
