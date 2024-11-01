@@ -1,7 +1,7 @@
 "use client";
 
-import type { PropsWithChildren } from "react";
-import { useGetUser } from "@/hooks";
+import { useEffect, type PropsWithChildren } from "react";
+import { useGetUser, useProductCart } from "@/hooks";
 import { Role } from "@/types";
 import { isEmpty } from "@/lib";
 import { Spinner } from "@nextui-org/react";
@@ -17,6 +17,14 @@ export default function AuthProvider({
 }: AuthProviderProps) {
   const { userData, isFetching } = useGetUser();
 
+  const { getCarts, _get } = useProductCart();
+
+  useEffect(() => {
+    if (userData?.id) {
+      getCarts();
+    }
+  }, [userData]);
+
   if (
     userData &&
     !isEmpty(allowedRoles) &&
@@ -26,7 +34,7 @@ export default function AuthProvider({
 
   return (
     <main aria-label="auth-provider-wrapper">
-      {isFetching ? (
+      {isFetching || _get.isPending ? (
         <div className="flex flex-1 justify-center items-center h-screen">
           <Spinner size="sm" />
         </div>

@@ -14,18 +14,19 @@ import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { loginAction } from "@/actions";
 import { AxiosError, HttpStatusCode } from "axios";
-import { useRouter } from "next/navigation";
 import { useLogin } from "@/hooks";
 import type { LoginUser } from "@/types";
+import { useSearchParams } from "next/navigation";
 
 type LoginFormProps = {
   withRole: "end-user" | "seller-user";
 };
 
 export default function LoginForm({ withRole }: LoginFormProps) {
-  const router = useRouter();
-
   const isSeller = withRole === "seller-user";
+  const search = useSearchParams();
+
+  const searchCallback = search.get("callback") || "";
 
   const [values, setValues] = useState<LoginUser>({ email: "", password: "" });
 
@@ -50,7 +51,15 @@ export default function LoginForm({ withRole }: LoginFormProps) {
     setCallbackLogin({
       onError: () => console.error("error"),
       onSuccess: () => {
-        typeof window !== "undefined" && window.location.replace("/");
+        let path: string;
+
+        if (searchCallback) {
+          path = `/${decodeURIComponent(searchCallback)}`;
+        } else {
+          path = "/";
+        }
+
+        typeof window !== "undefined" && window.location.replace(path);
       },
     });
 

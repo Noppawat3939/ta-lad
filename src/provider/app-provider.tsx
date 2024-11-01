@@ -9,7 +9,10 @@ type AppProviderProps = Readonly<PropsWithChildren>;
 export default function AppProvider({ children }: AppProviderProps) {
   const client = new QueryClient({
     defaultOptions: {
-      queries: { refetchOnWindowFocus: false, staleTime: 3000 },
+      queries: {
+        refetchOnWindowFocus: false,
+        staleTime: 3000,
+      },
     },
   });
 

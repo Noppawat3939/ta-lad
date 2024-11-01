@@ -1,24 +1,25 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import {
   ContentLayout,
   ProductCategoryCardGroup as CategoriesCards,
   ProductCardGroup,
   MainFooter,
 } from "@/components";
-import { useSearchKeywordStore, useUserStore } from "@/stores";
-import { useShortcutKey } from "@/hooks";
+import { useSearchKeywordStore } from "@/stores";
+import { useShortcutKey, useGetUser, useProductCart } from "@/hooks";
 import { useQueries } from "@tanstack/react-query";
-import { productService, userService } from "@/apis";
-import { CategoryResponse, GetProductsList } from "@/apis/internal/products";
+import { productService } from "@/apis";
+import type {
+  CategoryResponse,
+  GetProductsList,
+} from "@/apis/internal/products";
 import { Link } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
-import { hasCookie } from "cookies-next";
-import type { GetUserResponse } from "@/apis/internal/user";
-import dynamic from "next/dynamic";
-import { Product } from "@/types";
+import type { Product } from "@/types";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
   ssr: false,
@@ -27,7 +28,9 @@ const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
 function Home() {
   const router = useRouter();
 
-  const setUser = useUserStore((s) => s.setUser);
+  const { userData } = useGetUser();
+
+  const { getCarts } = useProductCart();
 
   const data = useQueries({
     queries: [
@@ -42,20 +45,14 @@ function Home() {
         queryFn: productService.getCategoryList,
         select: ({ data }: CategoryResponse) => data?.data,
       },
-      {
-        queryKey: ["user"],
-        queryFn: userService.getUser,
-        enabled:
-          ["session", "rdtk"].every((key) => hasCookie(key)) ||
-          ["store_session", "srdtk"].every((key) => hasCookie(key)),
-        select: (res: GetUserResponse) => {
-          if (res.data?.data) {
-            setUser(res.data?.data);
-          }
-        },
-      },
     ],
   });
+
+  useEffect(() => {
+    if (userData?.id) {
+      getCarts();
+    }
+  }, [userData]);
 
   const products = data[0] || [];
 
@@ -64,11 +61,6 @@ function Home() {
   const { open, onClose, onOpen } = useSearchKeywordStore();
 
   useShortcutKey({ callback: () => (open ? onClose() : onOpen()) });
-
-  const handleAddToCart = (sku: string) => {
-    let carts: { id: number; sku: string }[] = [];
-    carts = [...carts, { id: carts.length + 1, sku }];
-  };
 
   const handleClickProduct = (product?: Product) => {
     if (product?.category_name && product.sku) {
@@ -80,7 +72,9 @@ function Home() {
 
   return (
     <section className="flex flex-col items-center bg-slate-50 min-h-screen">
-      <MainNavbar />
+      <Suspense>
+        <MainNavbar />
+      </Suspense>
       <section className="py-4 w-full z-0">
         <CategoriesCards
           data={categories.data}
@@ -103,7 +97,6 @@ function Home() {
           <ProductCardGroup
             data={products.data}
             isLoading={products.isLoading}
-            onClickToCart={handleAddToCart}
             onClickProduct={handleClickProduct}
           />
         </section>
@@ -115,8 +108,8 @@ function Home() {
 
 export default function HomePage() {
   return (
-    <Suspense>
-      <Home />
-    </Suspense>
+    // <Suspense>
+    <Home />
+    // </Suspense>
   );
 }
