@@ -41,6 +41,7 @@ export interface Product {
   image: string[];
   sku: string;
   group_product?: GroupProduct;
+  is_preorder?: boolean;
 }
 
 export interface GroupProduct {

@@ -1,9 +1,11 @@
 "use client";
 
 import { ContentLayout } from "@/components";
+import { priceFormatter } from "@/lib";
 import { AuthProvider } from "@/provider";
 import { useCartStore } from "@/stores";
-import { Progress, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Progress, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import { Minus, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
@@ -28,18 +30,30 @@ export default function CartPage() {
           aria-label="product-carts"
           className="gap-3 grid grid-cols-1 max-w-[75%] w-full mx-auto max-md:max-w-[95%] max-sm:max-w-[100%]"
         >
-          {carts.map(({ id, product }) => {
+          {carts.map(({ id, product, amount, price }) => {
             return (
               <Card key={`cart-${id}`} shadow="sm">
-                <CardHeader>
+                <CardHeader className="flex-col items-start space-y-1">
                   <h3 className="text-xl font-medium">
                     {product.product_name}
                   </h3>
-                  <p className="text-slate-500/80 font-[300]">
-                    {product.description || ""}
-                  </p>
+                  {product.description && (
+                    <p className="text-slate-500/80 font-[300]">
+                      {product.description}
+                    </p>
+                  )}
+                  {product.is_preorder && (
+                    <Chip
+                      variant="flat"
+                      size="sm"
+                      color="default"
+                      className="text-gray-500/80"
+                    >
+                      {"Pre-order"}
+                    </Chip>
+                  )}
                 </CardHeader>
-                <CardBody>
+                <CardBody className="flex flex-row space-x-3">
                   <img
                     src={product.image[0]}
                     alt="main-image"
@@ -47,6 +61,21 @@ export default function CartPage() {
                     className="rounded-lg"
                     width={300}
                   />
+                  <div className="flex flex-col space-y-2">
+                    <p>{`Price ${priceFormatter(product.price, true)}`}</p>
+                    <div className="flex items-center">
+                      <p className="mr-2">{"Amout"}</p>
+                      <Minus className="w-5 h-5 rounded-sm border cursor-pointer" />
+                      <p className="text-sm w-[30px] text-center">
+                        {priceFormatter(amount)}
+                      </p>
+                      <Plus className="w-5 h-5 rounded-sm border cursor-pointer" />
+                    </div>
+                    <p className="text-primary font-medium">{`Total Price ${priceFormatter(
+                      price * amount,
+                      true
+                    )}`}</p>
+                  </div>
                 </CardBody>
               </Card>
             );
