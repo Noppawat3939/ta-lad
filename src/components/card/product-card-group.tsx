@@ -8,14 +8,7 @@ import {
   priceFormatter,
 } from "@/lib";
 import type { Product } from "@/types";
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  Image,
-  Skeleton,
-  cn,
-} from "@nextui-org/react";
+import { Card, CardBody, CardFooter, Skeleton, cn } from "@nextui-org/react";
 import { Box, Tag } from "lucide-react";
 
 type ProductCardGroupProps = {
@@ -90,13 +83,16 @@ export default function ProductCardGroup({
                     </span>
                   )}
                   <div className="flex justify-center mb-1">
-                    <Image
-                      src={item?.image?.[0]}
-                      alt="product-image"
-                      isLoading={!item?.image || isLoading}
-                      className="w-full flex flex-1 z-0 h-[120px] max-sm:h-[80px]"
-                      loading="lazy"
-                    />
+                    {isLoading ? (
+                      <Skeleton className="w-full h-[100px] rounded" />
+                    ) : (
+                      <img
+                        src={item?.image?.[0]}
+                        alt="product-image"
+                        className="w-full flex flex-1 z-0 h-[120px] max-sm:h-[80px]"
+                        loading="lazy"
+                      />
+                    )}
                   </div>
                   {isLoading || !item.product_name ? (
                     <Fragment>
