@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import {
   ContentLayout,
   ProductCategoryCardGroup as CategoriesCards,
@@ -72,9 +72,7 @@ function Home() {
 
   return (
     <section className="flex flex-col items-center bg-slate-50 min-h-screen">
-      <Suspense>
-        <MainNavbar />
-      </Suspense>
+      <MainNavbar />
       <section className="py-4 w-full z-0">
         <CategoriesCards
           data={categories.data}
@@ -107,9 +105,5 @@ function Home() {
 }
 
 export default function HomePage() {
-  return (
-    // <Suspense>
-    <Home />
-    // </Suspense>
-  );
+  return <Home />;
 }

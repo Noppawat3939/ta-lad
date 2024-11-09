@@ -2,7 +2,7 @@
 
 import { displayDiscountProduct, priceFormatter } from "@/lib";
 import { Product } from "@/types";
-import { Card, CardBody, Image } from "@nextui-org/react";
+import { Card, CardBody } from "@nextui-org/react";
 import { ProductCardLoader } from ".";
 import { Tag } from "lucide-react";
 
@@ -91,7 +91,7 @@ export default function ProductRelateCardGroup({
                     <small className="text-xs">{`-${item.discount_percent}%`}</small>
                   </span>
                 )}
-                <Image
+                <img
                   src={item.image?.[0]}
                   loading="lazy"
                   draggable={false}

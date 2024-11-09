@@ -1,12 +1,5 @@
 import { MainLayout } from "@/components";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  Image,
-  Link,
-} from "@nextui-org/react";
+import { Button, Card, CardBody, CardFooter, Link } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
 import { Metadata } from "next";
 import { ReactNode } from "react";
@@ -68,7 +61,7 @@ function RegisCard({ image, label, role }: IRegisterCard) {
     <Card className="w-full pb-2">
       <CardBody>
         <center>
-          <Image
+          <img
             src={image}
             loading="lazy"
             height={320}

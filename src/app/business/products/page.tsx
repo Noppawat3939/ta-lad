@@ -27,7 +27,6 @@ import {
   Button,
   Checkbox,
   Chip,
-  Image,
   Input,
   Tab,
   Tabs,
@@ -165,7 +164,7 @@ export default function ProductsPage() {
               </p>
             ),
             image: (
-              <Image
+              <img
                 src={item.image[0]}
                 loading="lazy"
                 alt="product-image"

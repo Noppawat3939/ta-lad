@@ -1,12 +1,5 @@
 import { ProductCategory } from "@/types";
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  Image,
-  Skeleton,
-  cn,
-} from "@nextui-org/react";
+import { Card, CardBody, CardFooter, Skeleton, cn } from "@nextui-org/react";
 import { Suspense } from "react";
 
 type ProductCategoryCardGroupProps = {
@@ -48,14 +41,16 @@ export default function ProductCategoryCardGroup({
                     className="flex items-center justify-center bg-gray-50 rounded-full w-[80px] h-[80px]"
                     aria-label="image-wrapper"
                   >
-                    <Image
-                      className="w-[60px] h-[60px] rounded-full object-cover"
-                      src={item.image}
-                      alt={`${item.name}`}
-                      loading="lazy"
-                      shadow="none"
-                      isLoading={isLoading || !item.image}
-                    />
+                    {isLoading ? (
+                      <Skeleton className="w-[60px] h-[60px] rounded-full" />
+                    ) : (
+                      <img
+                        className="w-[60px] h-[60px] rounded-full object-cover"
+                        src={item.image}
+                        alt={`${item.name}`}
+                        loading="lazy"
+                      />
+                    )}
                   </div>
                 </div>
               </CardBody>

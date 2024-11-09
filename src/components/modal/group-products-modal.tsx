@@ -3,7 +3,6 @@
 import { Product } from "@/types";
 import {
   Button,
-  Image,
   Input,
   Modal,
   ModalBody,
@@ -69,7 +68,7 @@ export default function GroupProductsModal({
               <div className="grid grid-cols-5 gap-2">
                 {products.map((product) => (
                   <div key={product.id}>
-                    <Image
+                    <img
                       alt="product-image"
                       src={product.image[0]}
                       loading="lazy"

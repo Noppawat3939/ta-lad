@@ -2,7 +2,6 @@
 
 import {
   Button,
-  Image,
   Input,
   Kbd,
   Popover,
@@ -113,28 +112,32 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
     return "/images/user.png";
   }, [user]);
 
+  const hasCart = useMemo(() => carts.length > 0, [carts]);
+
   return (
     <Fragment>
       <nav className="sticky top-0 bg-white w-full h-[100px] max-md:shadow-sm flex flex-col z-20">
         <div className="max-w-[1200px] w-full mx-auto max-xl:max-w-[1024px] max-lg:max-w-[768px] max-md:max-w-[95%] justify-end items-center py-2 flex space-x-5 text-xs transition-all duration-200 text-foreground-500/70">
-          <p className="hidden max-md:block max-md:relative max-md:py-1">
-            <ShoppingCart
-              className={cn(
-                "w-4 h-4",
-                carts.length > 0 ? "text-slate-500" : "text-slate-400/50"
+          {user?.role === "user" && (
+            <p className="hidden max-md:relative max-md:py-1">
+              <ShoppingCart
+                className={cn(
+                  "w-4 h-4",
+                  hasCart ? "text-slate-500" : "text-slate-400/50"
+                )}
+              />
+              {hasCart && (
+                <sub className="absolute -top-[4px] -right-[8px] bg-red-600 text-white shadow rounded-full flex justify-center font-medium items-center w-[18px] h-[18px]">
+                  {carts.length}
+                </sub>
               )}
-            />
-            {carts.length > 0 && (
-              <sub className="absolute -top-[4px] -right-[8px] bg-red-600 text-white shadow rounded-full flex justify-center font-medium items-center w-[18px] h-[18px]">
-                {carts.length}
-              </sub>
-            )}
-          </p>
+            </p>
+          )}
           {user?.id || hasCookie("rdtk" || "srdtk") ? (
             <Popover placement="bottom" showArrow>
               <PopoverTrigger contextMenu={"hover"}>
                 <span className="flex items-center space-x-2">
-                  <Image
+                  <img
                     src={profile}
                     width={20}
                     height={20}
@@ -221,12 +224,12 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
                 as={Link}
                 href="/cart"
                 aria-label="cart-link"
-                color={carts.length > 0 ? "default" : "primary"}
+                color={hasCart ? "default" : "primary"}
                 isIconOnly
               >
                 <ShoppingCart className="w-5 h-5" />
               </Button>
-              {carts.length > 0 && (
+              {hasCart && (
                 <sub className="absolute -top-[2px] -right-[2px] bg-primary text-white shadow rounded-full flex justify-center font-medium items-center w-[20px] h-[20px]">
                   {carts.length}
                 </sub>

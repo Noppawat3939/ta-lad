@@ -33,7 +33,10 @@ export default function AuthProvider({
     return <NotFoundContainer />;
 
   return (
-    <main aria-label="auth-provider-wrapper">
+    <section
+      aria-label="auth-provider-wrapper"
+      allowed-user={userData?.email ? "true" : "false"}
+    >
       {isFetching || _get.isPending ? (
         <div className="flex flex-1 justify-center items-center h-screen">
           <Spinner size="sm" />
@@ -41,6 +44,6 @@ export default function AuthProvider({
       ) : (
         children
       )}
-    </main>
+    </section>
   );
 }

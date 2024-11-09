@@ -9,7 +9,6 @@ import {
   CardFooter,
   CardHeader,
   Chip,
-  Image,
 } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo } from "react";
@@ -107,7 +106,7 @@ export default function SellerProductCard({
           }}
         >
           {image?.map((item, i) => (
-            <Image
+            <img
               src={item}
               key={`product-image-${i}`}
               className="w-full h-full object-cover"
