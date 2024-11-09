@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomeLayout({ children }: HomeLayoutProps) {
-  return <main aria-label="home-layout">{children}</main>;
+  return <main aria-label="app-layout">{children}</main>;
 }

@@ -1,12 +1,21 @@
 "use client";
 
 import { ContentLayout } from "@/components";
+import { useCount } from "@/hooks";
 import { priceFormatter } from "@/lib";
 import { AuthProvider } from "@/provider";
 import { useCartStore } from "@/stores";
-import { Progress, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import {
+  Progress,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Button,
+} from "@nextui-org/react";
 import { Minus, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useEffect, useMemo } from "react";
 
 const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
   ssr: false,
@@ -14,6 +23,25 @@ const MainNavbar = dynamic(() => import("@/components/navbar/main-navbar"), {
 
 export default function CartPage() {
   const carts = useCartStore((s) => s.carts);
+
+  const { countList, onIncreaseList, onDecreaseList, setCountList } =
+    useCount();
+
+  useEffect(() => {
+    if (carts.length > 0) {
+      setCountList(carts.map((cart) => cart.amount));
+    }
+  }, [carts]);
+
+  const memorizedTotalPrice = useMemo(
+    () =>
+      carts.length > 0
+        ? carts
+            .map((cart, i) => ({ price: cart.price, amount: countList[i] }))
+            .reduce((total, cur) => (total += cur.price * cur.amount), 0)
+        : 0,
+    [carts, countList]
+  );
 
   return (
     <AuthProvider allowedRoles={["user"]}>
@@ -26,11 +54,25 @@ export default function CartPage() {
             className="max-w-[calc(100vw_-_5%)] w-full mx-auto"
           />
         </section>
+        <section className="flex border-b pb-2 justify-end items-center space-x-4 mb-4">
+          <span aria-label="total-price" className="text-sm font-medium flex">
+            {"Total price (THB)"}
+            <p className="ml-1 text-primary">
+              {priceFormatter(memorizedTotalPrice)}
+            </p>
+          </span>
+          <Button
+            aria-label="checkout-btn"
+            isDisabled={memorizedTotalPrice === 0}
+          >
+            {"Checkout"}
+          </Button>
+        </section>
         <section
           aria-label="product-carts"
           className="gap-3 grid grid-cols-1 max-w-[75%] w-full mx-auto max-md:max-w-[95%] max-sm:max-w-[100%]"
         >
-          {carts.map(({ id, product, amount, price }) => {
+          {carts.map(({ id, product, amount, price }, i) => {
             return (
               <Card key={`cart-${id}`} shadow="sm">
                 <CardHeader className="flex-col items-start space-y-1">
@@ -42,16 +84,21 @@ export default function CartPage() {
                       {product.description}
                     </p>
                   )}
-                  {product.is_preorder && (
-                    <Chip
-                      variant="flat"
-                      size="sm"
-                      color="default"
-                      className="text-gray-500/80"
-                    >
-                      {"Pre-order"}
+                  <div className="flex space-x-2">
+                    {product.is_preorder && (
+                      <Chip
+                        variant="flat"
+                        size="sm"
+                        color="default"
+                        className="text-gray-500/80"
+                      >
+                        {"Pre-order"}
+                      </Chip>
+                    )}
+                    <Chip size="sm" variant="bordered" color="primary">
+                      {product.category_name}
                     </Chip>
-                  )}
+                  </div>
                 </CardHeader>
                 <CardBody className="flex flex-row space-x-3">
                   <img
@@ -62,18 +109,32 @@ export default function CartPage() {
                     width={300}
                   />
                   <div className="flex flex-col space-y-2">
-                    <p>{`Price ${priceFormatter(product.price, true)}`}</p>
                     <div className="flex items-center">
                       <p className="mr-2">{"Amout"}</p>
-                      <Minus className="w-5 h-5 rounded-sm border cursor-pointer" />
+                      <Button
+                        aria-label="decrease-btn"
+                        isDisabled={countList[i] <= 0}
+                        size="sm"
+                        isIconOnly
+                        onClick={() => onDecreaseList(i)}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
                       <p className="text-sm w-[30px] text-center">
-                        {priceFormatter(amount)}
+                        {priceFormatter(countList[i])}
                       </p>
-                      <Plus className="w-5 h-5 rounded-sm border cursor-pointer" />
+                      <Button
+                        aria-label="increase-btn"
+                        size="sm"
+                        isIconOnly
+                        isDisabled={countList[i] >= product.stock_amount}
+                        onClick={() => onIncreaseList(i)}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <p className="text-primary font-medium">{`Total Price ${priceFormatter(
-                      price * amount,
-                      true
+                    <p aria-label="price-per-amount">{`Price ${priceFormatter(
+                      price
                     )}`}</p>
                   </div>
                 </CardBody>

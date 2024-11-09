@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Image, Link } from "@nextui-org/react";
+import { Button, Link } from "@nextui-org/react";
 import { ContentLayout, MainLayout } from "..";
 import { useMetadata } from "@/hooks";
 import { memo } from "react";
@@ -12,7 +12,7 @@ function NotFound() {
     <MainLayout hideBackBtn>
       <ContentLayout className="h-[cal(100dvh_-_80px)] bg-white items-center flex-1">
         <section className="flex flex-col gap-3 min-h-[calc(100vh_-_140px)] justify-center items-center">
-          <Image
+          <img
             src="/images/not-found.png"
             loading="lazy"
             alt="404"

@@ -2,7 +2,7 @@
 
 import { Fragment, useRef, useState } from "react";
 import { delay, isUndefined } from "@/lib";
-import { Button, Image, cn } from "@nextui-org/react";
+import { Button, cn } from "@nextui-org/react";
 import { Trash2, Upload } from "lucide-react";
 import Compressor from "compressorjs";
 
@@ -146,7 +146,7 @@ export default function ImageUpload({
               >
                 <Trash2 className="w-3 h-3 text-red-500" />
               </Button>
-              <Image
+              <img
                 src={URL.createObjectURL(image)}
                 width={80}
                 className="object-contain z-0"
@@ -170,7 +170,7 @@ export default function ImageUpload({
               >
                 <Trash2 className="w-3 h-3 text-red-500" />
               </Button>
-              <Image
+              <img
                 src={image}
                 width={80}
                 className="object-contain z-0"

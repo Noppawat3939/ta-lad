@@ -105,9 +105,5 @@ function Home() {
 }
 
 export default function HomePage() {
-  return (
-    // <Suspense>
-    <Home />
-    // </Suspense>
-  );
+  return <Home />;
 }

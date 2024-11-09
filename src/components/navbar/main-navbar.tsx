@@ -2,7 +2,6 @@
 
 import {
   Button,
-  Image,
   Input,
   Kbd,
   Popover,
@@ -138,7 +137,7 @@ export default function MainNavbar({ hideCardBtn = false }: MainNavbarProps) {
             <Popover placement="bottom" showArrow>
               <PopoverTrigger contextMenu={"hover"}>
                 <span className="flex items-center space-x-2">
-                  <Image
+                  <img
                     src={profile}
                     width={20}
                     height={20}

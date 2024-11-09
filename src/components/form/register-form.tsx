@@ -7,7 +7,6 @@ import {
   CardFooter,
   CardHeader,
   CardProps,
-  Image,
   Input,
   Link,
   Textarea,
@@ -493,7 +492,7 @@ export default function RegisterForm({
               : `ร้าน ${values.store_name}`}
           </h3>
           <AnimateHidden isCenter>
-            <Image
+            <img
               src="/images/completed.png"
               className="h-[420px] max-sm:h-[360px]"
               loading="lazy"
