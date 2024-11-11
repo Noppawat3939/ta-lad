@@ -57,7 +57,7 @@ export default function useLogin(withSeller = false) {
     },
     onError: (e) => {
       if (e instanceof AxiosError) {
-        console.log(e.response?.data);
+        console.error(e.response?.data);
       }
 
       callbackLogin.onError();

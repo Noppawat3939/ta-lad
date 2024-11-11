@@ -1,3 +1,4 @@
+import { ButtonProps } from "@nextui-org/react";
 import { ReactNode } from "react";
 import { create } from "zustand";
 
@@ -7,6 +8,8 @@ interface State {
   content?: ReactNode;
   onOk?: <T>(atg?: T) => void;
   onCancel?: <T>(atg?: T) => void;
+  okBtnProps?: ButtonProps;
+  cancelBtnProps?: ButtonProps;
 }
 
 type ModalStore = {
@@ -21,6 +24,8 @@ const useModalStore = create<ModalStore>((set) => ({
     content: "",
     onCancel: () => null,
     onOk: () => null,
+    okBtnProps: {},
+    cancelBtnProps: {},
   },
   setModalState: (updateState) =>
     set((state) => ({ modalState: { ...state, ...updateState } })),

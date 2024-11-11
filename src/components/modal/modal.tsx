@@ -39,7 +39,13 @@ export default function Modal() {
                 onClick={() => {
                   modalState.onOk?.();
                   destroy();
+
+                  setModalState({
+                    ...modalState,
+                    okBtnProps: { color: "primary" },
+                  });
                 }}
+                {...modalState.okBtnProps}
               >
                 {"OK"}
               </Button>
@@ -49,6 +55,7 @@ export default function Modal() {
                   modalState.onCancel?.();
                   destroy();
                 }}
+                {...modalState.cancelBtnProps}
               >
                 {"Cancel"}
               </Button>
