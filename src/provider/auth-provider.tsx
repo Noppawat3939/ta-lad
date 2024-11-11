@@ -34,7 +34,7 @@ export default function AuthProvider({
 
   return (
     <section
-      aria-label="auth-provider-wrapper"
+      aria-label="auth-container"
       allowed-user={userData?.email ? "true" : "false"}
     >
       {isFetching || _get.isPending ? (
