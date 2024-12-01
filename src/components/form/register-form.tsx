@@ -20,6 +20,7 @@ import {
   useCallback,
   useMemo,
   useState,
+  Suspense,
 } from "react";
 import { authService } from "@/apis";
 import { useFormState, useFormStatus } from "react-dom";
@@ -509,52 +510,54 @@ export default function RegisterForm({
     );
 
   return (
-    <Card {...cardProps} className="py-[24px] px-2">
-      <form action={action}>
-        <CardHeader>
-          <h2 className="text-xl font-semibold w-full text-center">
-            {isRegisUser
-              ? "สมัครสมาชิกสำหรับผู้ใช้งานใหม่"
-              : "สมัครสมาชิกสำหรับร้านค้าใหม่"}
-          </h2>
-        </CardHeader>
-        <CardBody>
-          <div className="flex flex-col gap-4">
-            {step === 1 && renderFirstStep()}
-            {step === 2 && renderSecondStep()}
-            {step === 3 && renderThirdStep()}
-          </div>
-        </CardBody>
-        <CardFooter className="mt-3">
-          <div className="flex flex-col w-full gap-3">
-            <Button
-              isLoading={
-                pending ||
-                sendEmailMutation.isPending ||
-                createUserMutation.isPending
-              }
-              color={"primary"}
-              className="w-full"
-              type="submit"
-              isDisabled={step === 3 && values.code.length < 6}
-            >
-              {step >= 3 ? "ยืนยัน" : "ถัดไป"}
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <div className="flex space-x-1 justify-center items-baseline">
-              <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
-              <Link
-                color="primary"
-                isDisabled={createUserMutation.isPending}
-                href={`/login/${withRole}`}
-                className="cursor-pointer text-sm"
-              >
-                {"ล็อคอิน"}
-              </Link>
+    <Suspense fallback={<Fragment />}>
+      <Card {...cardProps} className="py-[24px] px-2">
+        <form action={action}>
+          <CardHeader>
+            <h2 className="text-xl font-semibold w-full text-center">
+              {isRegisUser
+                ? "สมัครสมาชิกสำหรับผู้ใช้งานใหม่"
+                : "สมัครสมาชิกสำหรับร้านค้าใหม่"}
+            </h2>
+          </CardHeader>
+          <CardBody>
+            <div className="flex flex-col gap-4">
+              {step === 1 && renderFirstStep()}
+              {step === 2 && renderSecondStep()}
+              {step === 3 && renderThirdStep()}
             </div>
-          </div>
-        </CardFooter>
-      </form>
-    </Card>
+          </CardBody>
+          <CardFooter className="mt-3">
+            <div className="flex flex-col w-full gap-3">
+              <Button
+                isLoading={
+                  pending ||
+                  sendEmailMutation.isPending ||
+                  createUserMutation.isPending
+                }
+                color={"primary"}
+                className="w-full"
+                type="submit"
+                isDisabled={step === 3 && values.code.length < 6}
+              >
+                {step >= 3 ? "ยืนยัน" : "ถัดไป"}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <div className="flex space-x-1 justify-center items-baseline">
+                <p className="text-sm">{"ฉันเป็นสมาชิกอยู่แล้ว"}</p>
+                <Link
+                  color="primary"
+                  isDisabled={createUserMutation.isPending}
+                  href={`/login/${withRole}`}
+                  className="cursor-pointer text-sm"
+                >
+                  {"ล็อคอิน"}
+                </Link>
+              </div>
+            </div>
+          </CardFooter>
+        </form>
+      </Card>
+    </Suspense>
   );
 }

@@ -13,7 +13,7 @@ import { InputPassword } from ".";
 import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { loginAction } from "@/actions";
-import { AxiosError, HttpStatusCode } from "axios";
+import { type AxiosError, HttpStatusCode } from "axios";
 import { useLogin } from "@/hooks";
 import type { LoginUser } from "@/types";
 import { useSearchParams } from "next/navigation";

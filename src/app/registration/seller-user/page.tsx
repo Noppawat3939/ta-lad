@@ -1,5 +1,5 @@
 import { MainLayout, RegisterForm } from "@/components";
-import { Metadata } from "next";
+import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "JUDPI สมัครสมาชิกสำหรับร้านค้า",

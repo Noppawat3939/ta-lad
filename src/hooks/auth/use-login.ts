@@ -8,7 +8,7 @@ import { setCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
 
 const initialState = {
-  onSuccess: (res?: unknown) => {},
+  onSuccess: <T extends unknown>(_res?: T) => {},
   onError: () => {},
 };
 
