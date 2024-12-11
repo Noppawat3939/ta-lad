@@ -61,7 +61,7 @@ export type ProductShipping = {
   delivery_time: number;
 };
 
-export type ProductCartStatus = "open" | "paid" | "cancelled";
+export type ProductCartStatus = 'open' | 'paid' | 'cancelled';
 
 export type ProductCart = {
   id: number;
@@ -71,4 +71,7 @@ export type ProductCart = {
   price: number;
   status: ProductCartStatus;
   product: Product;
+  user?: { id: number; first_name: string; last_name: string; profile_image?: string };
+  created_at: string;
+  updated_at: string;
 };

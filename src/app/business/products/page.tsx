@@ -1,38 +1,19 @@
-"use client";
+'use client';
 
-import { productService } from "@/apis";
+import { productService } from '@/apis';
 import {
   CustomTable,
   GroupProductsModal,
   Modal,
   SellerProductCard,
   SidebarLayout,
-} from "@/components";
-import {
-  useDebounce,
-  useGetSellerProducts,
-  useGroupProduct,
-  useUngroupProduct,
-} from "@/hooks";
-import {
-  dateFormatter,
-  isEmpty,
-  priceFormatter,
-  toLowerCase,
-  truncate,
-} from "@/lib";
-import { useModalStore } from "@/stores";
-import { Product } from "@/types";
-import {
-  Button,
-  Checkbox,
-  Chip,
-  Input,
-  Tab,
-  Tabs,
-  cn,
-} from "@nextui-org/react";
-import { useMutation } from "@tanstack/react-query";
+} from '@/components';
+import { useDebounce, useGetSellerProducts, useGroupProduct, useUngroupProduct } from '@/hooks';
+import { dateFormatter, isEmpty, priceFormatter, toLowerCase, truncate } from '@/lib';
+import { useModalStore } from '@/stores';
+import { Product } from '@/types';
+import { Button, Checkbox, Chip, Input, Tab, Tabs, cn } from '@nextui-org/react';
+import { useMutation } from '@tanstack/react-query';
 import {
   AlignJustify,
   CircleAlert,
@@ -42,10 +23,10 @@ import {
   PackagePlus,
   Plus,
   SquarePen,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Fragment, Suspense, useMemo, useState } from "react";
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { Fragment, Suspense, useMemo, useState } from 'react';
 
 export default function ProductsPage() {
   const pathname = usePathname();
@@ -53,12 +34,12 @@ export default function ProductsPage() {
 
   const { setModalState } = useModalStore();
 
-  const [viewProdcut, setViewProduct] = useState<"list" | "grid">("list");
-  const [search, setSearch] = useState("");
+  const [viewProdcut, setViewProduct] = useState<'list' | 'grid'>('list');
+  const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number[]>([]);
   const [groupProducts, setGroupProducts] = useState<{
     isOpen: boolean;
-    products: Pick<Product, "id" | "image">[];
+    products: Pick<Product, 'id' | 'image'>[];
     name?: string;
     group_product_id?: number;
   }>({
@@ -70,10 +51,7 @@ export default function ProductsPage() {
 
   const updateSkuMutation = useMutation({
     mutationFn: productService.updateSkuProduct,
-    onSuccess: () =>
-      typeof window !== "undefined"
-        ? window.location.reload()
-        : router.refresh(),
+    onSuccess: () => (typeof window !== 'undefined' ? window.location.reload() : router.refresh()),
   });
 
   const onProductsGroupped = () => {
@@ -102,10 +80,7 @@ export default function ProductsPage() {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  const shouldShowSkuUpdate = useMemo(
-    () => data?.some((item) => !item.sku),
-    [data]
-  );
+  const shouldShowSkuUpdate = useMemo(() => data?.some((item) => !item.sku), [data]);
 
   const handleSelectProductId = (checked: boolean, productId: number) => {
     setSelectedId((prevId) => {
@@ -135,22 +110,19 @@ export default function ProductsPage() {
               <Checkbox
                 value={String(item.id)}
                 checked={selectedId && selectedId.includes(item.id)}
-                onChange={(e) =>
-                  handleSelectProductId(e.target.checked, +e.target.value)
-                }
+                onChange={(e) => handleSelectProductId(e.target.checked, +e.target.value)}
               />
             ),
             group_id: (
               <p
-                aria-label="group-id"
-                className="text-center duration-200 transition-all cursor-pointer hover:text-[#FF731D]"
+                aria-label='group-id'
+                className='text-center duration-200 transition-all cursor-pointer hover:text-[#FF731D]'
                 onClick={() => {
-                  const groupedProductIds =
-                    item.group_product?.product_ids || [];
+                  const groupedProductIds = item.group_product?.product_ids || [];
 
                   const filteredGroupProducts = data
-                    ?.filter((item) => groupedProductIds.includes(item.id))
-                    ?.map((item) => ({ id: item.id, image: item.image }));
+                    ?.filter(({ id: productId }) => groupedProductIds.includes(productId))
+                    ?.map(({ id, image }) => ({ id, image }));
 
                   setGroupProducts({
                     isOpen: true,
@@ -166,9 +138,9 @@ export default function ProductsPage() {
             image: (
               <img
                 src={item.image[0]}
-                loading="lazy"
-                alt="product-image"
-                className="min-w-[42px] max-w-[42px] h-[42px] rounded-full object-cover"
+                loading='lazy'
+                alt='product-image'
+                className='min-w-[42px] max-w-[42px] h-[42px] rounded-full object-cover'
               />
             ),
             product_name: truncate(item.product_name, 40),
@@ -178,56 +150,56 @@ export default function ProductsPage() {
             stock: item.stock_amount,
             sku: item.sku ? (
               <Chip
-                variant={"dot"}
-                classNames={{ dot: "bg-green-500" }}
-                color={"primary"}
-                size="sm"
+                variant={'dot'}
+                classNames={{ dot: 'bg-green-500' }}
+                color={'primary'}
+                size='sm'
               >
                 {item.sku}
               </Chip>
             ) : (
-              "-"
+              '-'
             ),
-            created_at: dateFormatter(item.created_at, "YYYY-MM-DD"),
+            created_at: dateFormatter(item.created_at, 'YYYY-MM-DD'),
             action: (
-              <div className="flex space-x-1">
+              <div className='flex space-x-1'>
                 <Button
                   as={Link}
                   href={`/business/products/view?id=${item.id}`}
-                  color="primary"
-                  size="sm"
+                  color='primary'
+                  size='sm'
                   isIconOnly
-                  variant="light"
+                  variant='light'
                 >
-                  <FolderOpen className="w-4 h-4" />
+                  <FolderOpen className='w-4 h-4' />
                 </Button>
                 <Button
                   as={Link}
                   href={`/business/products/edit?id=${item.id}`}
-                  className="text-gray-600/60"
-                  size="sm"
+                  className='text-gray-600/60'
+                  size='sm'
                   isIconOnly
-                  variant="light"
+                  variant='light'
                 >
-                  <SquarePen className="w-4 h-4" />
+                  <SquarePen className='w-4 h-4' />
                 </Button>
               </div>
             ),
           })),
-    [data]
+    [data],
   );
 
   const productsTable = useMemo(() => {
     const cleanedDebounced = toLowerCase(debouncedSearch);
 
     const result =
-      cleanedDebounced && viewProdcut === "list"
+      cleanedDebounced && viewProdcut === 'list'
         ? products.filter((product) =>
             [
               toLowerCase(product.brand).includes(cleanedDebounced),
               toLowerCase(product.product_name).includes(cleanedDebounced),
               toLowerCase(product.product_category).includes(cleanedDebounced),
-            ].some(Boolean)
+            ].some(Boolean),
           )
         : products;
 
@@ -238,13 +210,13 @@ export default function ProductsPage() {
     const cleanedDebounced = debouncedSearch.toLowerCase().trim();
 
     const result =
-      cleanedDebounced && viewProdcut === "grid"
+      cleanedDebounced && viewProdcut === 'grid'
         ? data?.filter((product) =>
             [
               toLowerCase(product.brand).includes(cleanedDebounced),
               toLowerCase(product.product_name).includes(cleanedDebounced),
               toLowerCase(product.category_name).includes(cleanedDebounced),
-            ].some(Boolean)
+            ].some(Boolean),
           )
         : data;
 
@@ -255,25 +227,25 @@ export default function ProductsPage() {
     <CustomTable
       isLoading={isFetching || search !== debouncedSearch}
       classNames={{
-        wrapper: "max-h-[calc(100vh_-_240px)] overflow-x-auto",
-        tBodyRow: "odd:bg-slate-50/60 rounded-sm",
+        wrapper: 'max-h-[calc(100vh_-_240px)] overflow-x-auto',
+        tBodyRow: 'odd:bg-slate-50/60 rounded-sm',
       }}
       headerColumns={{
-        select: { children: "", order: 1, width: 30 },
-        group_id: { children: "Group ID", order: 2, width: 30 },
-        image: { children: "", order: 3, width: 60 },
-        product_name: { children: "ชื่อสินค้า", order: 4, width: 240 },
-        brand: { children: "แบรนด์", order: 5, width: 180 },
+        select: { children: '', order: 1, width: 30 },
+        group_id: { children: 'Group ID', order: 2, width: 30 },
+        image: { children: '', order: 3, width: 60 },
+        product_name: { children: 'ชื่อสินค้า', order: 4, width: 240 },
+        brand: { children: 'แบรนด์', order: 5, width: 180 },
         product_category: {
-          children: "หมวดหมู่",
+          children: 'หมวดหมู่',
           order: 6,
           width: 120,
         },
-        price: { children: "ราคา", order: 7, width: 80 },
-        stock: { children: "สต็อก", order: 8, width: 80 },
-        sku: { children: "รหัสสินค้า", order: 9, width: 120 },
-        created_at: { children: "สร้างเมื่อ", order: 10, width: 120 },
-        action: { children: "Action", order: 11, width: 100, align: "center" },
+        price: { children: 'ราคา', order: 7, width: 80 },
+        stock: { children: 'สต็อก', order: 8, width: 80 },
+        sku: { children: 'รหัสสินค้า', order: 9, width: 120 },
+        created_at: { children: 'สร้างเมื่อ', order: 10, width: 120 },
+        action: { children: 'Action', order: 11, width: 100, align: 'center' },
       }}
       bodyColumns={productsTable}
     />
@@ -282,10 +254,8 @@ export default function ProductsPage() {
   const renderCards = () => (
     <div
       className={cn(
-        "grid gap-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1",
-        productsCard && productsCard?.length >= 4
-          ? "grid-cols-4"
-          : "grid-cols-3"
+        'grid gap-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1',
+        productsCard && productsCard?.length >= 4 ? 'grid-cols-4' : 'grid-cols-3',
       )}
     >
       {productsCard?.map((product) => (
@@ -295,129 +265,127 @@ export default function ProductsPage() {
   );
 
   return (
-    <SidebarLayout
-      activeKey="products"
-      classNames={{
-        contentLayout: "px-4 py-3",
-      }}
-    >
-      <section className="bg-white">
-        <div className="flex justify-between items-center pt-3 pb-1">
-          <h1
-            aria-label="page-title"
-            className="text-2xl text-slate-900 font-semibold"
-          >
-            {"สินค้าทั้งหมด"}
-          </h1>
+    <Suspense>
+      <SidebarLayout
+        activeKey='products'
+        classNames={{
+          contentLayout: 'px-4 py-3',
+        }}
+      >
+        <section className='bg-white'>
+          <div className='flex justify-between items-center pt-3 pb-1'>
+            <h1 aria-label='page-title' className='text-2xl text-slate-900 font-semibold'>
+              {'สินค้าทั้งหมด'}
+            </h1>
 
-          <div className="flex items-center flex-[.55] space-x-3">
-            <Input
-              variant="bordered"
-              className="flex-1"
-              isClearable
-              onClear={() => setSearch("")}
-              autoComplete="off"
-              classNames={{ input: "placeholder:text-gray-400" }}
-              placeholder={"ค้นหา"}
-              value={search}
-              size="sm"
-              onChange={({ target: { value } }) => setSearch(value)}
-            />
-            <Tabs
-              isDisabled={isFetching}
-              color="primary"
-              size="sm"
-              defaultSelectedKey="list"
-              onSelectionChange={(key) => {
-                const selected = key as typeof viewProdcut;
-                setViewProduct(selected);
-              }}
-            >
-              <Tab title={<AlignJustify className="w-4 h-4" />} key="list" />
-              <Tab title={<LayoutGrid className="w-4 h-4" />} key="grid" />
-            </Tabs>
-            <div className="flex space-x-1">
-              <Button
-                as={Link}
-                href={`${pathname}/insert`}
-                startContent={<Plus className="w-4 h-4" />}
-                color="primary"
-                isLoading={isFetching}
-                size="sm"
-              >
-                {"เพิ่มสินค้าใหม่"}
-              </Button>
-
-              {shouldShowSkuUpdate && (
-                <Button
-                  size="sm"
-                  isLoading={updateSkuMutation.isPending}
-                  onClick={() => updateSkuMutation.mutate()}
-                >
-                  <PackagePlus className="w-4 h-4" />
-                  {"อัพเดท SKU"}
-                </Button>
-              )}
-
-              <Button
-                size="sm"
-                onClick={() => {
-                  if (data && data?.length > 0) {
-                    const filteredSelect = data
-                      ?.filter((item) => selectedId.includes(item.id))
-                      ?.map((item) => ({
-                        id: item.id,
-                        image: item.image,
-                      }));
-                    setGroupProducts({
-                      products: filteredSelect,
-                      isOpen: true,
-                    });
-                  }
+            <div className='flex items-center flex-[.55] space-x-3'>
+              <Input
+                variant='bordered'
+                className='flex-1'
+                isClearable
+                onClear={() => setSearch('')}
+                autoComplete='off'
+                classNames={{ input: 'placeholder:text-gray-400' }}
+                placeholder={'ค้นหา'}
+                value={search}
+                size='sm'
+                onChange={({ target: { value } }) => setSearch(value)}
+              />
+              <Tabs
+                isDisabled={isFetching}
+                color='primary'
+                size='sm'
+                defaultSelectedKey='list'
+                onSelectionChange={(key) => {
+                  const selected = key as typeof viewProdcut;
+                  setViewProduct(selected);
                 }}
-                isDisabled={selectedId.length < 2}
               >
-                <Group className="w-4 h-4" />
-                {"รวมกลุ่มสินค้า"}
-              </Button>
+                <Tab title={<AlignJustify className='w-4 h-4' />} key='list' />
+                <Tab title={<LayoutGrid className='w-4 h-4' />} key='grid' />
+              </Tabs>
+              <div className='flex space-x-1'>
+                <Button
+                  as={Link}
+                  href={`${pathname}/insert`}
+                  startContent={<Plus className='w-4 h-4' />}
+                  color='primary'
+                  isLoading={isFetching}
+                  size='sm'
+                >
+                  {'เพิ่มสินค้าใหม่'}
+                </Button>
+
+                {shouldShowSkuUpdate && (
+                  <Button
+                    size='sm'
+                    isLoading={updateSkuMutation.isPending}
+                    onClick={() => updateSkuMutation.mutate()}
+                  >
+                    <PackagePlus className='w-4 h-4' />
+                    {'อัพเดท SKU'}
+                  </Button>
+                )}
+
+                <Button
+                  size='sm'
+                  onClick={() => {
+                    if (!isEmpty(data)) {
+                      const filteredSelect = data
+                        ?.filter((item) => selectedId.includes(item.id))
+                        ?.map((item) => ({
+                          id: item.id,
+                          image: item.image,
+                        }));
+                      setGroupProducts({
+                        products: filteredSelect!,
+                        isOpen: true,
+                      });
+                    }
+                  }}
+                  isDisabled={selectedId.length < 2}
+                >
+                  <Group className='w-4 h-4' />
+                  {'รวมกลุ่มสินค้า'}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex-1 flex justify-end pb-3">
-          <div className="flex items-center space-x-1">
-            <CircleAlert className="w-3 h-3 text-orange-400" />
-            <p className="text-[10px] font-[300] text-foreground-500">
-              {"โปรดอัพเดท SKU เพื่อให้สินค้าของคุณสามารถเข้าถึงลูกค้าได้"}
-            </p>
+          <div className='flex-1 flex justify-end pb-3'>
+            <div className='flex items-center space-x-1'>
+              <CircleAlert className='w-3 h-3 text-orange-400' />
+              <p className='text-[10px] font-[300] text-foreground-500'>
+                {'โปรดอัพเดท SKU เพื่อให้สินค้าของคุณสามารถเข้าถึงลูกค้าได้'}
+              </p>
+            </div>
           </div>
-        </div>
-        <section className="border-2 border-slate-50 p-3 rounded-lg overflow-x-scroll">
-          <Suspense>
-            {viewProdcut === "list" && renderTable()}
-            {viewProdcut === "grid" && renderCards()}
-          </Suspense>
+          <section className='border-2 border-slate-50 p-3 rounded-lg overflow-x-scroll'>
+            <Suspense>
+              {viewProdcut === 'list' && renderTable()}
+              {viewProdcut === 'grid' && renderCards()}
+            </Suspense>
+          </section>
         </section>
-      </section>
-      <GroupProductsModal
-        isOpen={groupProducts.isOpen}
-        products={groupProducts.products}
-        groupName={groupProducts.name}
-        onClose={() => setGroupProducts({ products: [], isOpen: false })}
-        onGroup={(data) => handleGroupProduct(data)}
-        onUnGroup={() => {
-          setGroupProducts((prev) => ({ ...prev, isOpen: false }));
-          setModalState({
-            isOpen: true,
-            title: "คุณต้องการยกเลิกจัดกลุ่ม?",
-            onOk: () =>
-              groupProducts.group_product_id &&
-              handleUnGrouppedProduct(groupProducts.group_product_id),
-            onCancel: () =>
-              setGroupProducts((prev) => ({ ...prev, isOpen: true })),
-          });
-        }}
-      />
-      <Modal />
-    </SidebarLayout>
+        <GroupProductsModal
+          isOpen={groupProducts.isOpen}
+          products={groupProducts.products}
+          groupName={groupProducts.name}
+          onClose={() => setGroupProducts({ products: [], isOpen: false })}
+          onGroup={(data) => handleGroupProduct(data)}
+          onUnGroup={() => {
+            setGroupProducts((prev) => ({ ...prev, isOpen: false }));
+            setModalState({
+              isOpen: true,
+              title: 'คุณต้องการยกเลิกจัดกลุ่ม?',
+              onOk: () =>
+                groupProducts.group_product_id &&
+                handleUnGrouppedProduct(groupProducts.group_product_id),
+              onCancel: () => setGroupProducts((prev) => ({ ...prev, isOpen: true })),
+            });
+          }}
+        />
+        <Modal />
+      </SidebarLayout>
+    </Suspense>
   );
 }
