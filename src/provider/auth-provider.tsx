@@ -27,7 +27,7 @@ export default function AuthProvider({ children, allowedRoles }: AuthProviderPro
 
   return (
     <section
-      suppressHydrationWarning={false}
+      suppressHydrationWarning={true}
       aria-label='auth-container'
       allowed-user={userData?.email ? 'true' : 'false'}
     >
